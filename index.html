@@ -1,0 +1,1878 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Как говорить с директором филиала на языке P&L — Иван Пичугин</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              purple: '#5B36D6',
+              purpleLight: '#F3F0FD',
+              orange: '#FF4F12',
+              orangeLight: '#FFF4EF',
+              dark: '#0F172A',
+              sub: '#475569',
+              muted: '#64748B',
+              bg: '#F4F6F9',
+              card: '#FFFFFF',
+              border: '#E2E8F0',
+              borderHover: '#CBD5E1'
+            }
+          },
+          fontFamily: {
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    body {
+      background-color: #F4F6F9;
+      color: #0F172A;
+      font-family: 'Inter', sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* Анимации плавного перехода */
+    .slide-view {
+      display: none;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .slide-view.active {
+      display: flex;
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    /* Чистая эстетика карточек без растровых теней */
+    .apple-card {
+      background: #FFFFFF;
+      border: 1px solid #E2E8F0;
+      border-radius: 16px;
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+    .apple-card:hover {
+      border-color: #CBD5E1;
+    }
+
+    /* Прогресс-бар */
+    .progress-fill {
+      transition: width 0.3s ease;
+    }
+
+    /* Пульсирующий таймер */
+    @keyframes pulse-timer {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.02); }
+    }
+    .timer-running {
+      animation: pulse-timer 2s infinite ease-in-out;
+    }
+
+    /* Скроллбар */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #F1F5F9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #CBD5E1;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94A3B8;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-brand-purpleLight selection:text-brand-purple">
+
+  <!-- Верхняя панель управления -->
+  <header class="sticky top-0 z-40 bg-white/90 backdrop-blur-md border-b border-brand-border px-4 lg:px-8 py-3.5 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <div class="flex items-center gap-2">
+        <span class="w-2.5 h-2.5 rounded-full bg-brand-orange"></span>
+        <span class="text-xs font-bold uppercase tracking-wider text-brand-purple">Цифровые регионы</span>
+      </div>
+      <span class="text-slate-300">/</span>
+      <span class="text-xs font-medium text-brand-muted hidden sm:inline">Как говорить с директором филиала на языке P&L</span>
+    </div>
+
+    <!-- Индикаторы слайда и управление -->
+    <div class="flex items-center gap-2 sm:gap-4">
+      <!-- Индикатор роли -->
+      <div id="roleBadge" class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-slate-100 text-brand-muted border border-slate-200">
+        <span id="roleDot" class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+        <span id="roleLabel">Участник</span>
+      </div>
+
+      <!-- Кнопка живой очереди кейсов (для спикера) -->
+      <button id="liveQueueBtn" onclick="toggleQueueModal()" class="hidden px-3 py-1.5 text-xs font-semibold rounded-lg border border-brand-purple text-brand-purple bg-brand-purpleLight/50 hover:bg-brand-purpleLight transition items-center gap-1.5" title="Очередь кейсов участников">
+        <span class="w-2 h-2 rounded-full bg-brand-orange animate-ping"></span>
+        <span>Очередь (<span id="queueCount">0</span>)</span>
+      </button>
+
+      <!-- Кнопка заметок с замком -->
+      <button id="notesToggleBtn" onclick="handleNotesClick()" class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-brand-border text-brand-sub hover:text-brand-dark hover:bg-slate-50 transition flex items-center gap-1.5" title="Шпаргалка спикера (требуется PIN)">
+        <svg id="notesLockIcon" class="w-3.5 h-3.5 text-brand-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+        <span id="notesBtnText">Шпаргалка</span>
+      </button>
+
+      <button id="overviewToggleBtn" onclick="toggleOverviewModal()" class="px-3 py-1.5 text-xs font-semibold rounded-lg border border-brand-border text-brand-sub hover:text-brand-dark hover:bg-slate-50 transition flex items-center gap-1.5">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7"/></svg>
+        <span class="hidden md:inline">Слайды</span>
+      </button>
+
+      <div class="flex items-center bg-slate-100 rounded-lg p-1 text-xs font-semibold">
+        <button onclick="prevSlide()" class="p-1.5 hover:bg-white rounded-md text-brand-sub hover:text-brand-dark transition" title="Предыдущий слайд (Стрелка влево)">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 19l-7-7 7-7"/></svg>
+        </button>
+        <span id="slideIndicator" class="px-2.5 text-brand-dark min-w-[56px] text-center font-mono">01 / 14</span>
+        <button onclick="nextSlide()" class="p-1.5 hover:bg-white rounded-md text-brand-sub hover:text-brand-dark transition" title="Следующий слайд (Стрелка вправо)">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M9 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+
+      <button onclick="toggleFullscreen()" class="p-2 text-brand-muted hover:text-brand-dark rounded-lg hover:bg-slate-100 transition hidden sm:flex" title="Полноэкранный режим (F)">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Верхний индикатор прогресса -->
+  <div class="w-full bg-slate-200 h-1">
+    <div id="progressBar" class="bg-gradient-to-r from-brand-purple to-brand-orange h-1 progress-fill w-[7%]"></div>
+  </div>
+
+  <!-- Главный контейнер для слайдов -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col justify-center">
+
+    <!-- СЛАЙД 1: ТИТУЛ -->
+    <section id="slide-1" class="slide-view active flex-col justify-center">
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center py-6">
+        <div class="lg:col-span-7 flex flex-col justify-center">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-purpleLight text-brand-purple text-xs font-bold uppercase tracking-wider w-fit mb-6">
+            <span class="w-2 h-2 rounded-full bg-brand-orange"></span>
+            Практика партнерства
+          </div>
+          <h1 class="text-4xl sm:text-5xl lg:text-6xl font-extrabold tracking-tight text-brand-dark leading-[1.12] mb-6">
+            Как говорить с директором филиала на языке P&L
+          </h1>
+          <p class="text-lg sm:text-xl text-brand-sub leading-relaxed mb-8 max-w-2xl">
+            Руководство по совместному управлению ростом бизнеса для заместителя по цифровому региону
+          </p>
+          <div class="flex items-center gap-3">
+            <div class="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white border border-brand-border shadow-sm">
+              <span class="w-3 h-3 rounded-full bg-brand-purple"></span>
+              <span class="text-base font-semibold text-brand-dark">Иван Пичугин</span>
+            </div>
+            <button onclick="nextSlide()" class="px-6 py-2.5 rounded-full bg-brand-purple hover:bg-[#4d2dbf] text-white text-sm font-semibold transition flex items-center gap-2 shadow-sm">
+              <span>Начать просмотр</span>
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="lg:col-span-5">
+          <div class="apple-card p-6 sm:p-8 bg-white border border-brand-border flex flex-col gap-6">
+            <div class="text-xs font-bold uppercase tracking-wider text-brand-purple">Ключевая программа сессии</div>
+            <div class="space-y-4">
+              <div class="flex gap-4 items-start p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <span class="w-7 h-7 rounded-full bg-brand-purpleLight text-brand-purple font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">1</span>
+                <div>
+                  <div class="text-sm font-bold text-brand-dark">Экономика филиала и Стратегия-2030</div>
+                  <div class="text-xs text-brand-sub mt-0.5 leading-relaxed">Взгляд директора на бизнес, баланс маржинальности и рисков.</div>
+                </div>
+              </div>
+              <div class="flex gap-4 items-start p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <span class="w-7 h-7 rounded-full bg-brand-purpleLight text-brand-purple font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">2</span>
+                <div>
+                  <div class="text-sm font-bold text-brand-dark">Внешняя повестка и связка с губернатором</div>
+                  <div class="text-xs text-brand-sub mt-0.5 leading-relaxed">Указ № 1014, рейтинг РЦТ и упаковка в стандарт One-Pager.</div>
+                </div>
+              </div>
+              <div class="flex gap-4 items-start p-3 rounded-xl bg-slate-50 border border-slate-100">
+                <span class="w-7 h-7 rounded-full bg-brand-purpleLight text-brand-purple font-bold text-xs flex items-center justify-center shrink-0 mt-0.5">3</span>
+                <div>
+                  <div class="text-sm font-bold text-brand-dark">Внутренний диалог и нетворкинг</div>
+                  <div class="text-xs text-brand-sub mt-0.5 leading-relaxed">Защита от рисков, воронка и выход на ключевые площадки субъекта.</div>
+                </div>
+              </div>
+            </div>
+            <div class="pt-2 border-t border-slate-100 flex justify-between items-center text-xs text-brand-muted">
+              <span>Интерактивный формат с таймером</span>
+              <span>12 слайдов + 2 памятки</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- СЛАЙД 2: ПРОФИЛЬ ДИРЕКТОРА -->
+    <section id="slide-2" class="slide-view flex-col justify-center">
+      <div class="mb-6">
+        <span class="text-xs font-bold uppercase tracking-wider text-brand-purple">Портрет руководителя</span>
+        <h2 class="text-2xl sm:text-3xl font-bold text-brand-dark mt-1">Он отвечает за весь регион, а не за отдельные службы</h2>
+      </div>
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+        <div class="lg:col-span-4 apple-card p-6 flex flex-col justify-between bg-gradient-to-b from-white to-slate-50/70">
+          <div class="space-y-4">
+            <div class="p-4 rounded-xl bg-brand-purpleLight/60 border border-brand-purple/10">
+              <div class="text-3xl font-extrabold text-brand-purple">100% P&L</div>
+              <div class="text-xs font-semibold text-brand-sub mt-1">Единоличная ответственность за финансовый результат региона</div>
+            </div>
+            <div class="p-4 rounded-xl bg-brand-orangeLight/60 border border-brand-orange/10">
+              <div class="text-3xl font-extrabold text-brand-orange">100–1200+</div>
+              <div class="text-xs font-semibold text-brand-sub mt-1">Штат сотрудников в контуре ежедневного управления</div>
+            </div>
+          </div>
+          <div class="p-4 rounded-xl bg-white border border-brand-border text-xs text-brand-sub leading-relaxed mt-4">
+            Директор держит в фокусе аварии на сетях, государственную тайну, проверки надзорных органов, капитальное строительство и годовой бизнес-план.
+          </div>
+        </div>
+
+        <div class="lg:col-span-8 flex flex-col gap-4">
+          <div class="apple-card p-5 sm:p-6">
+            <div class="text-xs font-bold text-brand-purple uppercase tracking-wider mb-1">Школа и управленческий опыт</div>
+            <div class="text-base font-bold text-brand-dark mb-1">Инженерная база и системный менеджмент</div>
+            <p class="text-sm text-brand-sub leading-relaxed">
+              Возраст 44–56 лет. Программы EMBA или Президентская подготовка. Прошел путь через строительство сетей или крупные корпоративные продажи. Знает реальную себестоимость километра оптики и цену срыва сроков ввода.
+            </p>
+          </div>
+          <div class="apple-card p-5 sm:p-6">
+            <div class="text-xs font-bold text-brand-purple uppercase tracking-wider mb-1">Управленческий масштаб</div>
+            <div class="text-base font-bold text-brand-dark mb-1">Баланс сотен операционных процессов</div>
+            <p class="text-sm text-brand-sub leading-relaxed">
+              Управляет коллективом, мобильной связью, стройкой УЦН 2.0, взаимодействием с правоохранительными органами и имуществом. Для него не бывает изолированных технических задач.
+            </p>
+          </div>
+          <div class="apple-card p-5 sm:p-6">
+            <div class="text-xs font-bold text-brand-purple uppercase tracking-wider mb-1">Принцип принятия решений</div>
+            <div class="text-base font-bold text-brand-dark mb-1">Быстрота при подтвержденной безопасности</div>
+            <p class="text-sm text-brand-sub leading-relaxed">
+              Решения принимает оперативно, но только если видит прозрачную финансовую модель, понятную окупаемость и отсутствие юридических или кассовых угроз для филиала.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- СЛАЙД 3: KPI ДИРЕКТОРА (СТРАТЕГИЯ-2030) -->
+    <section id="slide-3" class="slide-view flex-col justify-center">
+      <div class="mb-6">
+        <span class="text-xs font-bold uppercase tracking-wider text-brand-purple">Стратегические ориентиры</span>
+        <h2 class="text-2xl sm:text-3xl font-bold text-brand-dark mt-1">Рамка корпоративной стратегии 2026–2030 годов</h2>
+      </div>
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div class="apple-card p-6 text-center flex flex-col justify-center">
+          <div class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-brand-purple tracking-tight mb-2">> 1 трлн ₽</div>
+          <div class="text-xs sm:text-sm font-medium text-brand-sub">выручка всей группы компаний</div>
+        </div>
+        <div class="apple-card p-6 text-center flex flex-col justify-center">
+          <div class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-brand-purple tracking-tight mb-2">40%</div>
+          <div class="text-xs sm:text-sm font-medium text-brand-sub">доля цифрового бизнеса к 2030 году</div>
+        </div>
+        <div class="apple-card p-6 text-center flex flex-col justify-center">
+          <div class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-brand-purple tracking-tight mb-2">+15%</div>
+          <div class="text-xs sm:text-sm font-medium text-brand-sub">средний прирост цифры в год</div>
+        </div>
+        <div class="apple-card p-6 text-center flex flex-col justify-center">
+          <div class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-brand-purple tracking-tight mb-2">37–38%</div>
+          <div class="text-xs sm:text-sm font-medium text-brand-sub">норматив по OIBDA margin</div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <div class="apple-card p-6 bg-gradient-to-r from-white to-slate-50 border-l-4 border-l-brand-purple">
+          <div class="text-xs font-bold uppercase tracking-wider text-brand-purple mb-1">Что это значит для директора</div>
+          <p class="text-sm sm:text-base text-brand-dark font-medium leading-relaxed">
+            Традиционный телеком больше не дает кратного роста. Единственный способ защитить бизнес-план филиала — обеспечить опережающую динамику прикладных цифровых проектов.
+          </p>
+        </div>
+        <div class="apple-card p-6 bg-gradient-to-r from-white to-brand-orangeLight/40 border-l-4 border-l-brand-orange">
+          <div class="text-xs font-bold uppercase tracking-wider text-brand-orange mb-1">В чем роль заместителя по цифре</div>
+          <p class="text-sm sm:text-base text-brand-dark font-medium leading-relaxed">
+            Госконтракты — не «социальная нагрузка» и не благотворительность. Это основной канал формирования маржинальной выручки и закрытия личных показателей руководителя.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- СЛАЙД 4: СТРУКТУРА P&L ФИЛИАЛА -->
+    <section id="slide-4" class="slide-view flex-col justify-center">
+      <div class="mb-6">
+        <span class="text-xs font-bold uppercase tracking-wider text-brand-purple">Контур управления</span>
+        <h2 class="text-2xl sm:text-3xl font-bold text-brand-dark mt-1">Баланс стабильности базового бизнеса и требований роста</h2>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="apple-card p-6 flex flex-col justify-between">
+          <div>
+            <span class="inline-block px-3 py-1 rounded-md bg-slate-100 text-brand-sub text-xs font-bold mb-4">Стабильность</span>
+            <div class="text-xl font-bold text-brand-dark mb-3">Традиционный телеком</div>
+            <p class="text-sm text-brand-sub leading-relaxed mb-6">
+              Сегменты B2C и B2B, широкополосный доступ в интернет, платное ТВ и телефония. Формируют надежный базовый денежный поток филиала при ограниченном органическом росте.
+            </p>
+          </div>
+          <div class="pt-4 border-t border-brand-border text-xs font-semibold text-brand-muted">
+            Главная задача: удержание абонентской базы и контроль оттока
+          </div>
+        </div>
+
+        <div class="apple-card p-6 flex flex-col justify-between">
+          <div>
+            <span class="inline-block px-3 py-1 rounded-md bg-slate-100 text-brand-sub text-xs font-bold mb-4">Надежность</span>
+            <div class="text-xl font-bold text-brand-dark mb-3">Инфраструктура</div>
+            <p class="text-sm text-brand-sub leading-relaxed mb-6">
+              Строительство оптических сетей, базовые станции мобильной связи, программа УЦН 2.0, круглосуточная эксплуатация, имущественный комплекс и государственная тайна.
+            </p>
+          </div>
+          <div class="pt-4 border-t border-brand-border text-xs font-semibold text-brand-muted">
+            Главная задача: непрерывность связи и контроль себестоимости
+          </div>
+        </div>
+
+        <div class="apple-card p-6 flex flex-col justify-between border-2 border-brand-purple bg-gradient-to-b from-white to-brand-purpleLight/30">
+          <div>
+            <span class="inline-block px-3 py-1 rounded-md bg-brand-purple text-white text-xs font-bold mb-4">Точка роста P&L</span>
+            <div class="text-xl font-bold text-brand-dark mb-3">Цифровой бизнес</div>
+            <p class="text-sm text-brand-sub leading-relaxed mb-6">
+              Облачные платформы, региональные информационные системы, центры обработки данных, информационная безопасность и интеллектуальные отраслевые комплексы.
+            </p>
+          </div>
+          <div class="pt-4 border-t border-brand-purple/20 text-xs font-bold text-brand-purple">
+            Главная задача: кратный рост маржинальной выручки региона
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- СЛАЙД 5: КОМУ ПРОДАЕТ ДИРЕКТОР ФИЛИАЛА -->
+    <section id="slide-5" class="slide-view flex-col justify-center">
+      <div class="mb-6">
+        <span class="text-xs font-bold uppercase tracking-wider text-brand-purple">Переговоры на высшем уровне</span>
+        <h2 class="text-2xl sm:text-3xl font-bold text-brand-dark mt-1">Кому продает директор: повестка первого лица региона</h2>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="apple-card p-6 flex flex-col justify-between">
+          <div>
+            <div class="text-xs font-bold text-brand-purple uppercase tracking-wider mb-2">Этап 1. Рейтинг Минцифры</div>
+            <div class="text-xl font-bold text-brand-dark mb-3">Рейтинг цифровой трансформации</div>
+            <p class="text-sm text-brand-sub leading-relaxed mb-6">
+              Показываем профильному министру и губернатору, как региональные платформы и перевод социально значимых услуг в электронный вид выводят субъект в зеленую зону федерального рейтинга.
+            </p>
+          </div>
+          <div class="p-3 bg-slate-50 rounded-xl text-xs font-semibold text-brand-sub border border-slate-100">
+            Фокус: 10 ключевых отраслей и статус в зеленой зоне РФ
+          </div>
+        </div>
+
+        <div class="apple-card p-6 flex flex-col justify-between">
+          <div>
+            <div class="text-xs font-bold text-brand-purple uppercase tracking-wider mb-2">Этап 2. Указ Президента № 1014</div>
+            <div class="text-xl font-bold text-brand-dark mb-3">Оценка эффективности деятельности</div>
+            <p class="text-sm text-brand-sub leading-relaxed mb-6">
+              ИТС напрямую влияет на снижение смертности на дорогах, видеонаблюдение закрывает показатели общественной безопасности, а умный свет повышает индекс качества городской среды.
+            </p>
+          </div>
+          <div class="p-3 bg-slate-50 rounded-xl text-xs font-semibold text-brand-sub border border-slate-100">
+            Фокус: персональные ключевые показатели губернатора
+          </div>
+        </div>
+
+        <div class="apple-card p-6 flex flex-col justify-between border-2 border-emerald-500 bg-emerald-50/30">
+          <div>
+            <div class="text-xs font-bold text-emerald-600 uppercase tracking-wider mb-2">Этап 3. Результат</div>
+            <div class="text-xl font-bold text-brand-dark mb-3">Запись в протокол встречи</div>
+            <p class="text-sm text-brand-sub leading-relaxed mb-6">
+              Директор филиала идет на переговоры с проектом конкретного поручения профильным ведомствам, где заранее расписаны сроки, объемы финансирования и ответственность сторон.
+            </p>
+          </div>
+          <div class="p-3 bg-white rounded-xl text-xs font-bold text-emerald-700 border border-emerald-200">
+            Итог: официальное поручение в работу правительства
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- СЛАЙД 6: ЧТО ПРОДАЕТ ДИРЕКТОР (ПРОДУКТОВЫЙ РЯД) -->
+    <section id="slide-6" class="slide-view flex-col justify-center">
+      <div class="mb-6">
+        <span class="text-xs font-bold uppercase tracking-wider text-brand-purple">Экономика решений</span>
+        <h2 class="text-2xl sm:text-3xl font-bold text-brand-dark mt-1">Что продает директор: продукты с защищенной доходностью</h2>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div class="apple-card p-5 sm:p-6 flex flex-col justify-between">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-brand-orange">Транспорт</span>
+            <div class="text-lg font-bold text-brand-dark mt-1 mb-2">Интеллектуальные транспортные системы (ИТС)</div>
+            <p class="text-sm text-brand-sub leading-relaxed mb-4">
+              Крупные федеральные трансферты, весомый разовый объем выручки и закрепление за филиалом статуса ключевого технологического интегратора субъекта.
+            </p>
+          </div>
+          <div class="flex gap-2 text-xs font-semibold text-brand-muted">
+            <span class="px-2.5 py-1 rounded bg-slate-100">Федеральный бюджет</span>
+            <span class="px-2.5 py-1 rounded bg-slate-100">Масштабный CAPEX</span>
+          </div>
+        </div>
+
+        <div class="apple-card p-5 sm:p-6 flex flex-col justify-between">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-brand-orange">Безопасность</span>
+            <div class="text-lg font-bold text-brand-dark mt-1 mb-2">Городское и региональное видеонаблюдение</div>
+            <p class="text-sm text-brand-sub leading-relaxed mb-4">
+              Длительный сервисный контракт, стабильные ежемесячные платежи и надежная база для последующей допродажи модулей видеоаналитики и биометрии.
+            </p>
+          </div>
+          <div class="flex gap-2 text-xs font-semibold text-brand-muted">
+            <span class="px-2.5 py-1 rounded bg-slate-100">Высокий LTV</span>
+            <span class="px-2.5 py-1 rounded bg-slate-100">Защита от оттока</span>
+          </div>
+        </div>
+
+        <div class="apple-card p-5 sm:p-6 flex flex-col justify-between">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-brand-orange">Инвестиции</span>
+            <div class="text-lg font-bold text-brand-dark mt-1 mb-2">Энергосервисные контракты (умный свет)</div>
+            <p class="text-sm text-brand-sub leading-relaxed mb-4">
+              Модернизация за счет инвестиций компании с возвратом средств из доказанной экономии бюджета. Не требует трат из казны региона здесь и сейчас.
+            </p>
+          </div>
+          <div class="flex gap-2 text-xs font-semibold text-brand-muted">
+            <span class="px-2.5 py-1 rounded bg-slate-100">Возврат из экономии</span>
+            <span class="px-2.5 py-1 rounded bg-slate-100">Длинная маржинальность</span>
+          </div>
+        </div>
+
+        <div class="apple-card p-5 sm:p-6 flex flex-col justify-between">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-brand-orange">Госсектор</span>
+            <div class="text-lg font-bold text-brand-dark mt-1 mb-2">Связь в образовании (распоряжение 519-рп)</div>
+            <p class="text-sm text-brand-sub leading-relaxed mb-4">
+              Статус единственного исполнителя на 2026–2027 годы. Базовый гарантированный доход и плацдарм для допродажи школьного видеонаблюдения, СКУД и облачных платформ.
+            </p>
+          </div>
+          <div class="flex gap-2 text-xs font-semibold text-brand-muted">
+            <span class="px-2.5 py-1 rounded bg-slate-100">Гарантия 2026–2027</span>
+            <span class="px-2.5 py-1 rounded bg-slate-100">База допродаж</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- СЛАЙД 7: КАК ПОДГОТОВИТЬ ДИРЕКТОРА: ONE-PAGER -->
+    <section id="slide-7" class="slide-view flex-col justify-center">
+      <div class="mb-6">
+        <span class="text-xs font-bold uppercase tracking-wider text-brand-purple">Инструмент подготовки</span>
+        <h2 class="text-2xl sm:text-3xl font-bold text-brand-dark mt-1">Как подготовить директора: стандарт One-Pager</h2>
+      </div>
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+        <div class="apple-card p-5 sm:p-6 flex flex-col justify-between">
+          <div>
+            <div class="text-xs font-bold uppercase text-brand-purple tracking-wider mb-1">Блок 1</div>
+            <div class="text-base font-bold text-brand-dark mb-2">Польза для первого лица региона</div>
+            <p class="text-sm text-brand-sub leading-relaxed mb-3">
+              Позиция в Рейтинге цифровой трансформации или нацпроекте, снижение аварийности на дорогах, прямая экономия региональной казны.
+            </p>
+          </div>
+          <div class="p-2.5 bg-slate-50 border-l-2 border-brand-purple text-xs text-brand-sub italic">
+            «Снижение аварийности на ключевых дорогах на 14% в рамках нацпроекта»
+          </div>
+        </div>
+
+        <div class="apple-card p-5 sm:p-6 flex flex-col justify-between">
+          <div>
+            <div class="text-xs font-bold uppercase text-brand-purple tracking-wider mb-1">Блок 2</div>
+            <div class="text-base font-bold text-brand-dark mb-2">Экономический эффект для филиала</div>
+            <p class="text-sm text-brand-sub leading-relaxed mb-3">
+              Объем выручки в горизонте нескольких лет, вклад в годовой план по цифре, расчетная маржинальность OIBDA и подтвержденный источник средств.
+            </p>
+          </div>
+          <div class="p-2.5 bg-slate-50 border-l-2 border-brand-purple text-xs text-brand-sub italic">
+            «Выручка 240 млн руб., вклад в цифру +8%, источник: ЛБО Минтранса»
+          </div>
+        </div>
+
+        <div class="apple-card p-5 sm:p-6 flex flex-col justify-between">
+          <div>
+            <div class="text-xs font-bold uppercase text-brand-purple tracking-wider mb-1">Блок 3</div>
+            <div class="text-base font-bold text-brand-dark mb-2">Текущий статус и узкие места</div>
+            <p class="text-sm text-brand-sub leading-relaxed mb-3">
+              С кем проведены встречи, кто готовит техническое задание, какие развилки требуют личного звонка или письма за подписью директора филиала.
+            </p>
+          </div>
+          <div class="p-2.5 bg-slate-50 border-l-2 border-brand-purple text-xs text-brand-sub italic">
+            «ТЗ готово, требуется звонок директора профильному вице-губернатору»
+          </div>
+        </div>
+
+        <div class="apple-card p-5 sm:p-6 flex flex-col justify-between">
+          <div>
+            <div class="text-xs font-bold uppercase text-brand-purple tracking-wider mb-1">Блок 4</div>
+            <div class="text-base font-bold text-brand-dark mb-2">Задача на встречу с губернатором</div>
+            <p class="text-sm text-brand-sub leading-relaxed mb-3">
+              Конкретная формулировка поручения в итоговый протокол встречи, обязывающая профильное ведомство подготовить план совместной реализации проекта.
+            </p>
+          </div>
+          <div class="p-2.5 bg-slate-50 border-l-2 border-brand-purple text-xs text-brand-sub italic">
+            «Минтрансу субъекта утвердить план внедрения ИТС до 15 ноября...»
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- СЛАЙД 8: ПРАКТИКУМ В ЗАЛЕ (ИНТЕРАКТИВНЫЙ ТАЙМЕР И ВОРКБУК) -->
+    <section id="slide-8" class="slide-view flex-col justify-center">
+      <div class="apple-card border-2 border-brand-purple p-6 sm:p-8 bg-white relative overflow-hidden">
+        
+        <!-- Верхняя шапка практикума с таймером -->
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-brand-border">
+          <div>
+            <div class="flex items-center gap-2 mb-1">
+              <span class="px-2.5 py-0.5 rounded-full bg-brand-orangeLight text-brand-orange text-xs font-bold uppercase tracking-wider">
+                Практикум в зале
+              </span>
+              <span class="text-xs font-medium text-brand-muted">Работа в парах или индивидуально</span>
+            </div>
+            <h2 class="text-xl sm:text-2xl font-bold text-brand-dark leading-snug max-w-2xl">
+              Упаковка проекта в формат One-Pager за 5 минут
+            </h2>
+          </div>
+
+          <!-- Интерактивный таймер Ивана -->
+          <div class="flex items-center gap-3 bg-slate-50 border border-brand-border rounded-2xl p-2.5 sm:p-3 shrink-0">
+            <div id="timerDisplayContainer" class="flex flex-col items-center justify-center px-4 py-1 bg-white rounded-xl border border-slate-200">
+              <span id="timerDigits" class="text-3xl sm:text-4xl font-black font-mono tracking-tight text-brand-purple">05:00</span>
+              <span id="timerStatusLabel" class="text-[10px] uppercase font-bold tracking-wider text-brand-muted">Ожидание старта</span>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <div class="flex gap-1.5">
+                <button id="timerToggleBtn" onclick="toggleTimer()" class="px-3.5 py-1.5 bg-brand-purple hover:bg-[#4d2dbf] text-white text-xs font-bold rounded-lg transition shadow-sm flex items-center gap-1">
+                  <span id="timerToggleIcon">▶</span>
+                  <span id="timerToggleText">Старт</span>
+                </button>
+                <button onclick="resetTimer()" class="px-2.5 py-1.5 bg-slate-200 hover:bg-slate-300 text-brand-dark text-xs font-semibold rounded-lg transition" title="Сбросить на 5 минут">
+                  ↺
+                </button>
+              </div>
+              <button onclick="addMinute()" class="px-2 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-brand-sub text-[11px] font-semibold rounded-md transition text-center">
+                +1 минута
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- РЕЖИМ СПОТЛАЙТА: КЕЙС УЧАСТНИКА НА БОЛЬШОМ ЭКРАНЕ ДЛЯ ИВАНА -->
+        <div id="spotlightDisplay" class="hidden my-4 p-5 sm:p-6 bg-gradient-to-br from-brand-purpleLight/40 to-white rounded-2xl border-2 border-brand-purple">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-brand-border/70 gap-3 mb-4">
+            <div class="flex items-center gap-3">
+              <span class="px-3 py-1 rounded-full bg-brand-orange text-white text-[11px] font-bold uppercase tracking-wider animate-pulse">
+                Кейс на экране
+              </span>
+              <div>
+                <h3 id="spotlightProjectTitle" class="text-lg sm:text-xl font-bold text-brand-dark leading-none">Внедрение ИТС</h3>
+                <span id="spotlightAuthorBadge" class="text-xs font-semibold text-brand-purple mt-1 inline-block">Автор: Сергей (Самарский филиал)</span>
+              </div>
+            </div>
+
+            <!-- Элементы управления для Ивана -->
+            <div id="spotlightControls" class="flex items-center gap-2">
+              <button onclick="showNextQueuedCase()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-brand-dark text-xs font-semibold rounded-lg transition flex items-center gap-1">
+                <span>Следующий</span>
+                <span>→</span>
+              </button>
+              <button onclick="clearStageSpotlight()" class="px-3 py-1.5 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 text-xs font-bold rounded-lg transition">
+                ✕ Снять с экрана
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="p-3.5 bg-white rounded-xl border border-slate-200">
+              <div class="text-[11px] font-bold uppercase tracking-wider text-brand-purple mb-1">Показатель губернатора (Указ № 1014 / РЦТ)</div>
+              <p id="spotlightGovKpi" class="text-sm font-medium text-brand-dark">Снижение смертности на магистралях на 15%</p>
+            </div>
+            <div class="p-3.5 bg-white rounded-xl border border-slate-200">
+              <div class="text-[11px] font-bold uppercase tracking-wider text-brand-purple mb-1">Экономика филиала (P&L)</div>
+              <p id="spotlightEconomics" class="text-sm font-medium text-brand-dark">Выручка 180 млн руб., OIBDA 38%</p>
+            </div>
+            <div class="md:col-span-2 p-3.5 bg-white rounded-xl border border-slate-200 border-l-4 border-l-brand-purple">
+              <div class="text-[11px] font-bold uppercase tracking-wider text-brand-purple mb-1">Поручение в итоговый протокол встречи</div>
+              <p id="spotlightProtocol" class="text-sm font-semibold text-brand-dark italic">«Минтрансу региона подготовить план конкурсных процедур в срок до 15 ноября...»</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Интерактивный холст для участников -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mt-6">
+          <div class="lg:col-span-5 space-y-4">
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-brand-purple mb-1">
+                Ваше имя и регион / филиал
+              </label>
+              <input id="wbAuthorName" type="text" placeholder="Например: Сергей, Нижегородский филиал" 
+                     class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-purple focus:bg-white transition">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-brand-purple mb-1">
+                1. Проект из вашей воронки
+              </label>
+              <input id="wbProjectName" type="text" placeholder="Например: Внедрение ИТС / Энергосервис" 
+                     class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-purple focus:bg-white transition">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-brand-purple mb-1">
+                2. Показатель губернатора (Указ № 1014 / РЦТ)
+              </label>
+              <input id="wbGovKpi" type="text" placeholder="Какую строчку рейтинга или нацпроекта закрываем?" 
+                     class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-purple focus:bg-white transition">
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-brand-purple mb-1">
+                3. Экономика для филиала (выручка / источник)
+              </label>
+              <input id="wbEconomics" type="text" placeholder="Объем выручки, маржинальность, источник финансирования" 
+                     class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-purple focus:bg-white transition">
+            </div>
+          </div>
+
+          <div class="lg:col-span-7 flex flex-col justify-between space-y-4">
+            <div>
+              <label class="block text-xs font-bold uppercase tracking-wider text-brand-purple mb-1">
+                4. Формулировка поручения в итоговый протокол
+              </label>
+              <textarea id="wbProtocolText" rows="4" placeholder="Что профильное министерство должно получить под роспись? Например: «Минтрансу региона подготовить план конкурсных процедур в срок до 15 ноября...»" 
+                        class="w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-purple focus:bg-white transition resize-none"></textarea>
+            </div>
+
+            <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+              <button onclick="copyWorkbookBrief()" class="px-4 py-2.5 bg-white hover:bg-slate-100 text-brand-dark border border-brand-border text-xs font-semibold rounded-lg transition flex items-center justify-center gap-1.5">
+                <svg class="w-3.5 h-3.5 text-brand-muted" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+                <span>Скопировать себе</span>
+              </button>
+
+              <button onclick="submitCaseToStage()" class="px-5 py-2.5 bg-brand-orange hover:bg-[#e03e05] text-white text-xs font-bold rounded-lg transition flex items-center justify-center gap-2 shadow-sm">
+                <span>🚀 Отправить на экран спикера</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- СЛАЙД 9: КАК МЫ ПРОДАЕМ ДИРЕКТОРУ -->
+    <section id="slide-9" class="slide-view flex-col justify-center">
+      <div class="mb-6">
+        <span class="text-xs font-bold uppercase tracking-wider text-brand-purple">Внутренний диалог</span>
+        <h2 class="text-2xl sm:text-3xl font-bold text-brand-dark mt-1">Как мы продаем проект директору филиала</h2>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-5">
+        <div class="apple-card p-6 flex flex-col justify-between">
+          <div>
+            <div class="text-xs font-bold uppercase tracking-wider text-brand-muted mb-2">Позиция просителя</div>
+            <div class="p-3.5 bg-slate-50 border-l-2 border-slate-300 rounded-r-lg text-sm text-brand-sub italic mb-4">
+              «С госзаказчиками тяжело работать, не хватает штата, согласуйте дополнительные ставки и бюджет на участие в процедурах».
+            </div>
+            <ul class="space-y-2 text-xs sm:text-sm text-brand-sub">
+              <li class="flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                <span>Рост постоянных операционных расходов</span>
+              </li>
+              <li class="flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                <span>Опасность кассового разрыва и заморозки средств</span>
+              </li>
+              <li class="flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                <span>Риски санкций и штрафов по 44-ФЗ и 223-ФЗ</span>
+              </li>
+            </ul>
+          </div>
+          <div class="pt-4 border-t border-brand-border text-xs text-brand-muted mt-4">
+            Реакция директора: сомнения, закрытие позиций, отказ в ресурсах
+          </div>
+        </div>
+
+        <div class="apple-card p-6 flex flex-col justify-between border-2 border-brand-purple bg-gradient-to-b from-white to-brand-purpleLight/30">
+          <div>
+            <div class="text-xs font-bold uppercase tracking-wider text-brand-purple mb-2">Позиция партнера</div>
+            <div class="p-3.5 bg-brand-purpleLight border-l-2 border-brand-purple rounded-r-lg text-sm text-brand-dark font-medium mb-4">
+              «В работе надежный портфель из трех контрактов на три года. Они принесут филиалу Х миллионов выручки и закроют треть твоего плана по цифре. Мне нужны переговоры первого лица, исполнение мы забираем на себя».
+            </div>
+            <ul class="space-y-2 text-xs sm:text-sm text-brand-dark font-medium">
+              <li class="flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-brand-purple"></span>
+                <span>Прямой вклад в личные показатели эффективности</span>
+              </li>
+              <li class="flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-brand-purple"></span>
+                <span>Защищенная маржинальность филиала</span>
+              </li>
+              <li class="flex items-center gap-2">
+                <span class="w-1.5 h-1.5 rounded-full bg-brand-purple"></span>
+                <span>Полный контроль технологических рисков</span>
+              </li>
+            </ul>
+          </div>
+          <div class="pt-4 border-t border-brand-purple/20 text-xs font-bold text-brand-purple mt-4">
+            Реакция директора: понимание личной выгоды, союзничество и действие
+          </div>
+        </div>
+      </div>
+
+      <div class="apple-card p-4 flex items-center gap-3 bg-white">
+        <span class="text-xl">💡</span>
+        <span class="text-sm font-medium text-brand-dark">
+          Вспомните ваш последний разговор с директором филиала: из какой роли вы заходили и что в этом питче стоит изменить прямо в понедельник?
+        </span>
+      </div>
+    </section>
+
+    <!-- СЛАЙД 10: ПРИНЯТИЕ РЕШЕНИЙ -->
+    <section id="slide-10" class="slide-view flex-col justify-center">
+      <div class="mb-6">
+        <span class="text-xs font-bold uppercase tracking-wider text-brand-purple">Управление рисками</span>
+        <h2 class="text-2xl sm:text-3xl font-bold text-brand-dark mt-1">Как директор принимает решения и чего он ждет</h2>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-5">
+        <div class="apple-card p-5 sm:p-6 flex flex-col justify-between">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-brand-purple">Финансовый контур</span>
+            <div class="text-base font-bold text-brand-dark mt-1 mb-2">Глубокая проработка рисков</div>
+            <p class="text-sm text-brand-sub leading-relaxed mb-4">
+              Сквозной расчет финансовой модели без скрытых затрат, подтвержденные лимиты бюджетных обязательств субъекта или защита от кассовых разрывов.
+            </p>
+          </div>
+          <div class="p-2.5 bg-slate-50 rounded-lg text-xs font-semibold text-brand-muted text-center">
+            Никаких «деньги найдем позже»
+          </div>
+        </div>
+
+        <div class="apple-card p-5 sm:p-6 flex flex-col justify-between">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-brand-purple">Производство</span>
+            <div class="text-base font-bold text-brand-dark mt-1 mb-2">Структурирование исполнения</div>
+            <p class="text-sm text-brand-sub leading-relaxed mb-4">
+              Проверенный пул субподрядчиков, контроль цепочек поставок оборудования и соблюдение технологических окон для сдачи объектов в срок.
+            </p>
+          </div>
+          <div class="p-2.5 bg-slate-50 rounded-lg text-xs font-semibold text-brand-muted text-center">
+            Жесткий операционный контроль
+          </div>
+        </div>
+
+        <div class="apple-card p-5 sm:p-6 flex flex-col justify-between">
+          <div>
+            <span class="text-xs font-bold uppercase tracking-wider text-brand-purple">Правовая безопасность</span>
+            <div class="text-base font-bold text-brand-dark mt-1 mb-2">Юридическая чистота</div>
+            <p class="text-sm text-brand-sub leading-relaxed mb-4">
+              Использование типовых технических решений и конкурсной документации, уже прошедших проверки антимонопольной службы и надзорных органов.
+            </p>
+          </div>
+          <div class="p-2.5 bg-slate-50 rounded-lg text-xs font-semibold text-brand-muted text-center">
+            Нулевой риск предписаний ФАС
+          </div>
+        </div>
+      </div>
+
+      <div class="apple-card p-5 bg-white grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <div class="text-xs font-bold uppercase tracking-wider text-brand-purple mb-1">Задача заместителя</div>
+          <div class="text-sm text-brand-dark leading-relaxed">
+            Формировать надежную воронку проектов, просчитывать экономику и модерировать исполнение каждого этапа сделки.
+          </div>
+        </div>
+        <div>
+          <div class="text-xs font-bold uppercase tracking-wider text-brand-purple mb-1">Роль директора</div>
+          <div class="text-sm text-brand-dark leading-relaxed">
+            Подключать свой административный статус, вести переговоры с первыми лицами и защищать инициативу на уровне руководства региона.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- СЛАЙД 11: ВНЕШНИЙ НЕТВОРКИНГ -->
+    <section id="slide-11" class="slide-view flex-col justify-center">
+      <div class="mb-6">
+        <span class="text-xs font-bold uppercase tracking-wider text-brand-purple">Региональная повестка</span>
+        <h2 class="text-2xl sm:text-3xl font-bold text-brand-dark mt-1">Внешнее окружение: выводим директора на ключевые площадки</h2>
+      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="apple-card p-6 flex flex-col justify-between">
+          <div>
+            <div class="text-lg font-bold text-brand-dark mb-4">Институциональные площадки</div>
+            <ul class="space-y-3 text-sm text-brand-sub">
+              <li class="flex items-start gap-2.5">
+                <span class="w-2 h-2 rounded-full bg-brand-orange mt-1.5 shrink-0"></span>
+                <span>Общественная палата субъекта РФ и экспертные рабочие группы</span>
+              </li>
+              <li class="flex items-start gap-2.5">
+                <span class="w-2 h-2 rounded-full bg-brand-orange mt-1.5 shrink-0"></span>
+                <span>Наблюдательные советы ведущих региональных университетов</span>
+              </li>
+              <li class="flex items-start gap-2.5">
+                <span class="w-2 h-2 rounded-full bg-brand-orange mt-1.5 shrink-0"></span>
+                <span>Общественные советы при силовых ведомствах (МВД, МЧС)</span>
+              </li>
+              <li class="flex items-start gap-2.5">
+                <span class="w-2 h-2 rounded-full bg-brand-orange mt-1.5 shrink-0"></span>
+                <span>Региональные союзы промышленников, предпринимателей и строителей</span>
+              </li>
+              <li class="flex items-start gap-2.5">
+                <span class="w-2 h-2 rounded-full bg-brand-orange mt-1.5 shrink-0"></span>
+                <span>Ключевые деловые и спортивные форумы субъекта</span>
+              </li>
+            </ul>
+          </div>
+          <div class="pt-4 border-t border-brand-border text-xs text-brand-muted mt-4">
+            Задача зама: готовить темы выступлений и инициировать участие директора
+          </div>
+        </div>
+
+        <div class="apple-card p-6 flex flex-col justify-between">
+          <div>
+            <div class="text-lg font-bold text-brand-dark mb-4">Карта стейкхолдеров субъекта</div>
+            <ul class="space-y-3 text-sm text-brand-sub">
+              <li class="flex items-start gap-2.5">
+                <span class="w-2 h-2 rounded-full bg-brand-purple mt-1.5 shrink-0"></span>
+                <span>Губернатор и ключевые заместители по внутренней политике и экономике</span>
+              </li>
+              <li class="flex items-start gap-2.5">
+                <span class="w-2 h-2 rounded-full bg-brand-purple mt-1.5 shrink-0"></span>
+                <span>Профильные министры: цифра, транспорт, образование, медицина, ЖКХ</span>
+              </li>
+              <li class="flex items-start gap-2.5">
+                <span class="w-2 h-2 rounded-full bg-brand-purple mt-1.5 shrink-0"></span>
+                <span>Глава регионального центра и мэры крупных промышленных городов</span>
+              </li>
+              <li class="flex items-start gap-2.5">
+                <span class="w-2 h-2 rounded-full bg-brand-purple mt-1.5 shrink-0"></span>
+                <span>Руководители региональных управлений силового блока и Ростехнадзора</span>
+              </li>
+              <li class="flex items-start gap-2.5">
+                <span class="w-2 h-2 rounded-full bg-brand-purple mt-1.5 shrink-0"></span>
+                <span>Руководители профильных комитетов законодательного собрания региона</span>
+              </li>
+            </ul>
+          </div>
+          <div class="pt-4 border-t border-brand-border text-xs text-brand-muted mt-4">
+            Личный контакт директора со всей линейкой принимающих решения лиц
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- СЛАЙД 12: ФОРМУЛА ЛИДЕРСТВА -->
+    <section id="slide-12" class="slide-view flex-col justify-center">
+      <div class="mb-6">
+        <span class="text-xs font-bold uppercase tracking-wider text-brand-purple">Итог</span>
+        <h2 class="text-2xl sm:text-3xl font-bold text-brand-dark mt-1">Формула совместного лидерства в регионе</h2>
+      </div>
+
+      <div class="apple-card p-6 sm:p-8 border-2 border-brand-purple bg-white mb-6">
+        <div class="flex flex-col sm:flex-row items-center justify-around gap-4 text-center">
+          <div>
+            <div class="text-lg sm:text-xl font-bold text-brand-dark">Политический вес</div>
+            <div class="text-xs text-brand-muted mt-0.5">директора филиала</div>
+          </div>
+          <span class="text-3xl font-bold text-brand-purple">+</span>
+          <div>
+            <div class="text-lg sm:text-xl font-bold text-brand-dark">Управляемый портфель</div>
+            <div class="text-xs text-brand-muted mt-0.5">заместителя по цифровому региону</div>
+          </div>
+          <span class="text-3xl font-bold text-brand-purple">=</span>
+          <div>
+            <div class="text-lg sm:text-xl font-bold text-brand-dark">Лидерство в регионе</div>
+            <div class="text-xs text-brand-muted mt-0.5">выполнение бизнес-плана</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+        <div class="apple-card p-5 sm:p-6">
+          <div class="w-8 h-8 rounded-full bg-brand-purpleLight text-brand-purple font-bold text-sm flex items-center justify-center mb-3">1</div>
+          <div class="text-base font-bold text-brand-dark mb-1">Сценарии вместо проблем</div>
+          <p class="text-sm text-brand-sub leading-relaxed">
+            Приходите к директору не с констатацией сложностей, а с готовыми вариантами решений и предварительной оценкой рисков.
+          </p>
+        </div>
+        <div class="apple-card p-5 sm:p-6">
+          <div class="w-8 h-8 rounded-full bg-brand-purpleLight text-brand-purple font-bold text-sm flex items-center justify-center mb-3">2</div>
+          <div class="text-base font-bold text-brand-dark mb-1">Знание региональной казны</div>
+          <p class="text-sm text-brand-sub leading-relaxed">
+            Знайте бюджет и слабые места региона в рейтингах лучше профильного министра, находя точки применения сил компании.
+          </p>
+        </div>
+        <div class="apple-card p-5 sm:p-6">
+          <div class="w-8 h-8 rounded-full bg-brand-purpleLight text-brand-purple font-bold text-sm flex items-center justify-center mb-3">3</div>
+          <div class="text-base font-bold text-brand-dark mb-1">Победа первого лица</div>
+          <p class="text-sm text-brand-sub leading-relaxed">
+            Помогайте директору филиала становиться главным проводником и лицом цифровых побед перед руководством субъекта.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- СЛАЙД 13: ПРИЛОЖЕНИЕ 1 — МАТРИЦА БЫСТРОЙ ПРОВЕРКИ ПРОЕКТА -->
+    <section id="slide-13" class="slide-view flex-col justify-center">
+      <div class="mb-4">
+        <span class="text-xs font-bold uppercase tracking-wider text-brand-purple">Приложение 1 • Памятка</span>
+        <h2 class="text-2xl sm:text-3xl font-bold text-brand-dark mt-1">Матрица быстрой проверки проекта перед согласованием</h2>
+      </div>
+
+      <div class="apple-card overflow-hidden border border-brand-border">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-slate-50 border-b border-brand-border text-xs font-bold text-brand-muted uppercase tracking-wider">
+                <th class="p-4 sm:px-6">Параметр оценки</th>
+                <th class="p-4 sm:px-6 text-emerald-700 bg-emerald-50/50">Зеленая зона: выходим на защиту к директору</th>
+                <th class="p-4 sm:px-6 text-red-700 bg-red-50/50">Красная зона: дорабатываем внутри блока</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-brand-border text-sm">
+              <tr>
+                <td class="p-4 sm:px-6 font-bold text-brand-dark">Финансирование</td>
+                <td class="p-4 sm:px-6 text-emerald-800 bg-emerald-50/20 font-medium">
+                  Подтверждено лимитами бюджетных обязательств субъекта либо окупается доказанной экономией затрат
+                </td>
+                <td class="p-4 sm:px-6 text-red-700 bg-red-50/20">
+                  Средства обещали изыскать при корректировке бюджета во втором полугодии
+                </td>
+              </tr>
+              <tr>
+                <td class="p-4 sm:px-6 font-bold text-brand-dark">Сроки реализации</td>
+                <td class="p-4 sm:px-6 text-emerald-800 bg-emerald-50/20 font-medium">
+                  Технологические окна достаточны для поставки техники и проведения пусконаладочных работ
+                </td>
+                <td class="p-4 sm:px-6 text-red-700 bg-red-50/20">
+                  Сдача объекта в конце декабря при отсутствии утвержденного технического задания в сентябре
+                </td>
+              </tr>
+              <tr>
+                <td class="p-4 sm:px-6 font-bold text-brand-dark">Рентабельность</td>
+                <td class="p-4 sm:px-6 text-emerald-800 bg-emerald-50/20 font-medium">
+                  Проект полностью укладывается в норматив филиала по показателю OIBDA margin
+                </td>
+                <td class="p-4 sm:px-6 text-red-700 bg-red-50/20">
+                  Показатели занижены в надежде компенсировать убытки будущими допродажами сервисов
+                </td>
+              </tr>
+              <tr>
+                <td class="p-4 sm:px-6 font-bold text-brand-dark">Инфраструктура</td>
+                <td class="p-4 sm:px-6 text-emerald-800 bg-emerald-50/20 font-medium">
+                  Максимально задействованы собственные оптические сети, мощности ЦОД и платформы компании
+                </td>
+                <td class="p-4 sm:px-6 text-red-700 bg-red-50/20">
+                  Проект построен на перепродаже стороннего оборудования без добавленной стоимости оператора
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- СЛАЙД 14: ПРИЛОЖЕНИЕ 2 — РИТМ ВЗАИМОДЕЙСТВИЯ -->
+    <section id="slide-14" class="slide-view flex-col justify-center">
+      <div class="mb-6">
+        <span class="text-xs font-bold uppercase tracking-wider text-brand-purple">Приложение 2 • Памятка</span>
+        <h2 class="text-2xl sm:text-3xl font-bold text-brand-dark mt-1">Регламент взаимодействия: график встреч с директором филиала</h2>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="apple-card p-6 sm:p-7 flex flex-col justify-between">
+          <div>
+            <div class="text-xs font-bold uppercase tracking-wider text-brand-purple mb-1">Оперативный статус</div>
+            <div class="text-2xl font-bold text-brand-dark mb-3">Еженедельно</div>
+            <p class="text-sm text-brand-sub leading-relaxed mb-6">
+              <strong class="text-brand-dark">15 минут.</strong> Контроль движения ключевых сделок в воронке проектов и оперативные развилки, где требуется звонок или официальное письмо за подписью директора филиала.
+            </p>
+          </div>
+          <div class="p-3 bg-slate-50 rounded-xl text-xs font-semibold text-brand-muted">
+            Фокус: ТОП-5 контрактов и снятие стоп-факторов
+          </div>
+        </div>
+
+        <div class="apple-card p-6 sm:p-7 flex flex-col justify-between">
+          <div>
+            <div class="text-xs font-bold uppercase tracking-wider text-brand-purple mb-1">Финансовый контур</div>
+            <div class="text-2xl font-bold text-brand-dark mb-3">Ежемесячно</div>
+            <p class="text-sm text-brand-sub leading-relaxed mb-6">
+              <strong class="text-brand-dark">45 минут.</strong> Анализ исполнения P&L по цифровому направлению за прошедший период, контроль поступления оплат, закрытия актов и предотвращение кассовых разрывов.
+            </p>
+          </div>
+          <div class="p-3 bg-slate-50 rounded-xl text-xs font-semibold text-brand-muted">
+            Фокус: факт выполнения плана и платежная дисциплина
+          </div>
+        </div>
+
+        <div class="apple-card p-6 sm:p-7 flex flex-col justify-between">
+          <div>
+            <div class="text-xs font-bold uppercase tracking-wider text-brand-purple mb-1">Стратегия</div>
+            <div class="text-2xl font-bold text-brand-dark mb-3">Ежеквартально</div>
+            <p class="text-sm text-brand-sub leading-relaxed mb-6">
+              <strong class="text-brand-dark">Стратегическая сессия.</strong> Синхронизация долгосрочных инициатив с бюджетным циклом региона за полгода до внесения закона о региональном бюджете в законодательное собрание.
+            </p>
+          </div>
+          <div class="p-3 bg-slate-50 rounded-xl text-xs font-semibold text-brand-muted">
+            Фокус: закладка проектов в бюджет следующего года
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Нижняя строка состояния -->
+  <footer class="border-t border-brand-border bg-white px-4 lg:px-8 py-3 flex items-center justify-between text-xs text-brand-muted">
+    <div class="flex items-center gap-2">
+      <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+      <span>Спикер: <strong>Иван Пичугин</strong></span>
+    </div>
+    <div class="flex items-center gap-4">
+      <span class="hidden sm:inline">Навигация: ← / → или Пробел</span>
+      <button onclick="openQrModal()" class="text-brand-purple hover:underline font-semibold flex items-center gap-1">
+        <span>Открыть QR воркбука</span>
+      </button>
+    </div>
+  </footer>
+
+  <!-- ВЫДВИЖНАЯ ПАНЕЛЬ: ШПАРГАЛКА СПИКЕРА (ЗАМЕТКИ ИВАНА) -->
+  <aside id="notesDrawer" class="fixed right-0 top-0 bottom-0 w-full sm:w-96 bg-white border-l border-brand-border z-50 shadow-2xl transform translate-x-full transition-transform duration-300 ease-in-out p-6 flex flex-col justify-between">
+    <div>
+      <div class="flex items-center justify-between pb-4 border-b border-brand-border mb-4">
+        <div>
+          <div class="flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+            <span class="text-xs font-bold uppercase tracking-wider text-brand-purple">Шпаргалка спикера</span>
+          </div>
+          <div class="text-base font-bold text-brand-dark">Иван Пичугин</div>
+        </div>
+        <button onclick="toggleNotesDrawer()" class="p-2 text-brand-muted hover:text-brand-dark rounded-lg hover:bg-slate-100">
+          ✕
+        </button>
+      </div>
+
+      <div class="text-xs font-semibold text-brand-muted uppercase tracking-wider mb-2">
+        Слайд <span id="notesSlideNumber">1</span>: <span id="notesSlideTitle">Титул</span>
+      </div>
+
+      <div id="notesContentText" class="text-sm text-brand-dark leading-relaxed p-4 rounded-xl bg-slate-50 border border-slate-100 max-h-[70vh] overflow-y-auto">
+        <!-- Текст заметок подставляется динамически -->
+      </div>
+    </div>
+
+    <div class="pt-4 border-t border-brand-border text-xs text-brand-muted flex justify-between items-center">
+      <button onclick="exitSpeakerMode()" class="text-red-500 hover:underline font-semibold text-[11px]">Заблокировать шпаргалку</button>
+      <button onclick="toggleNotesDrawer()" class="text-brand-purple font-semibold">Закрыть</button>
+    </div>
+  </aside>
+
+  <!-- МОДАЛЬНОЕ ОКНО: ВВОД ПИН-КОДА СПИКЕРА -->
+  <div id="pinModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl border border-brand-border max-w-sm w-full p-6 shadow-2xl flex flex-col items-center">
+      <div class="w-12 h-12 rounded-2xl bg-brand-purpleLight text-brand-purple flex items-center justify-center mb-4">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+      </div>
+
+      <h3 class="text-lg font-bold text-brand-dark text-center mb-1">Доступ для спикера</h3>
+      <p class="text-xs text-brand-sub text-center mb-5 leading-relaxed">
+        Шпаргалка и сценарий выступления защищены. Введите пин-код для разблокировки:
+      </p>
+
+      <form onsubmit="handlePinSubmit(event)" class="w-full space-y-4">
+        <div>
+          <input id="pinInput" type="password" maxlength="8" placeholder="Введите PIN" autofocus
+                 class="w-full text-center tracking-widest text-xl font-bold font-mono px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:border-brand-purple focus:bg-white transition">
+          <p id="pinError" class="text-[11px] text-red-500 text-center font-medium mt-1.5 hidden">Неверный пин-код</p>
+        </div>
+
+        <div class="flex gap-2">
+          <button type="button" onclick="closePinModal()" class="w-1/2 py-2.5 text-xs font-semibold rounded-xl border border-brand-border text-brand-sub hover:bg-slate-50 transition">
+            Отмена
+          </button>
+          <button type="submit" class="w-1/2 py-2.5 text-xs font-bold rounded-xl bg-brand-purple hover:bg-[#4d2dbf] text-white transition shadow-sm">
+            Войти
+          </button>
+        </div>
+      </form>
+      <div class="mt-4 text-[11px] text-brand-muted text-center">
+        Подсказка: номер президентского указа
+      </div>
+    </div>
+  </div>
+
+  <!-- МОДАЛЬНОЕ ОКНО: СПИСОК ВСЕХ СЛАЙДОВ (ОБЗОР) -->
+  <div id="overviewModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl border border-brand-border max-w-4xl w-full max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+      <div class="p-5 border-b border-brand-border flex items-center justify-between">
+        <h3 class="text-base font-bold text-brand-dark">Оглавление презентации (14 слайдов)</h3>
+        <button onclick="toggleOverviewModal()" class="text-brand-muted hover:text-brand-dark p-1">✕</button>
+      </div>
+      <div class="p-6 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-3" id="overviewList">
+        <!-- Ссылки генерируются через JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- МОДАЛЬНОЕ ОКНО: ОЧЕРЕДЬ КЕЙСОВ ДЛЯ ИВАНА (РАЗБОР В ЗАЛЕ) -->
+  <div id="queueModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl border border-brand-border max-w-3xl w-full max-h-[85vh] flex flex-col overflow-hidden shadow-2xl">
+      <div class="p-5 border-b border-brand-border flex items-center justify-between">
+        <div>
+          <h3 class="text-base font-bold text-brand-dark">Кейсы участников из зала</h3>
+          <p class="text-xs text-brand-muted">Выберите кейс, чтобы развернуть его на экране перед аудиторией</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="clearAllCases()" class="text-xs text-red-500 hover:underline font-semibold px-2 py-1">Очистить все</button>
+          <button onclick="toggleQueueModal()" class="text-brand-muted hover:text-brand-dark p-1">✕</button>
+        </div>
+      </div>
+
+      <div id="queueListContainer" class="p-6 overflow-y-auto space-y-3">
+        <!-- Список кейсов генерируется динамически -->
+      </div>
+    </div>
+  </div>
+
+  <!-- МОДАЛЬНОЕ ОКНО: QR-КОД ДЛЯ СМАРТФОНОВ -->
+  <div id="qrModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl border border-brand-border max-w-md w-full p-6 text-center shadow-2xl flex flex-col items-center">
+      <div class="text-xs font-bold uppercase tracking-wider text-brand-purple mb-1">Интерактивный зал</div>
+      <h3 class="text-lg font-bold text-brand-dark mb-4">Воркбук One-Pager на смартфоне</h3>
+      
+      <!-- Векторный чистый QR код (SVG) -->
+      <div class="w-48 h-48 bg-slate-50 border border-brand-border rounded-xl p-3 mb-4 flex items-center justify-center">
+        <svg class="w-full h-full text-brand-dark" viewBox="0 0 100 100" fill="currentColor">
+          <rect x="10" y="10" width="24" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="4"/>
+          <rect x="16" y="16" width="12" height="12"/>
+          <rect x="66" y="10" width="24" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="4"/>
+          <rect x="72" y="16" width="12" height="12"/>
+          <rect x="10" y="66" width="24" height="24" rx="2" fill="none" stroke="currentColor" stroke-width="4"/>
+          <rect x="16" y="72" width="12" height="12"/>
+          <rect x="42" y="10" width="8" height="8"/>
+          <rect x="52" y="18" width="6" height="14"/>
+          <rect x="42" y="30" width="12" height="8"/>
+          <rect x="10" y="42" width="14" height="6"/>
+          <rect x="30" y="42" width="8" height="14"/>
+          <rect x="44" y="44" width="12" height="12"/>
+          <rect x="62" y="42" width="14" height="8"/>
+          <rect x="80" y="42" width="10" height="14"/>
+          <rect x="66" y="66" width="8" height="12"/>
+          <rect x="78" y="70" width="12" height="8"/>
+          <rect x="66" y="82" width="16" height="8"/>
+          <rect x="42" y="66" width="14" height="8"/>
+          <rect x="44" y="80" width="12" height="10"/>
+        </svg>
+      </div>
+
+      <p class="text-xs text-brand-sub leading-relaxed mb-6">
+        Участники в зале могут открыть интерактивную форму и параллельно с Иваном заполнять свой One-Pager на смартфонах.
+      </p>
+
+      <button onclick="closeQrModal()" class="w-full py-2.5 bg-brand-purple hover:bg-[#4d2dbf] text-white text-xs font-bold rounded-xl transition">
+        Понятно, закрыть
+      </button>
+    </div>
+  </div>
+
+  <!-- Всплывающий тост оповещений -->
+  <div id="toastNotification" class="fixed bottom-6 right-6 z-50 transform translate-y-16 opacity-0 transition-all duration-300 bg-brand-dark text-white px-4 py-3 rounded-xl shadow-xl flex items-center gap-3 text-xs font-semibold">
+    <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+    <span id="toastMessage">Сообщение</span>
+  </div>
+
+  <script>
+    // 1. Контент заметок спикера (Иван Пичугин)
+    const speakerNotes = [
+      {
+        title: "Титул",
+        text: "«Коллеги, добрый день. Сегодня мы разберем, как превратить директора филиала из строгого контролера в вашего главного союзника. Женя Мирошников только что показал вам, где лежат деньги в регионе и чего хочет губернатор. Моя задача — показать, как упаковать эти проекты под P&L директора филиала, чтобы он сам вел вас к первому лицу региона»."
+      },
+      {
+        title: "Портрет руководителя",
+        text: "«Когда вы заходите в кабинет к директору филиала, помните: он отвечает головой абсолютно за все — от аварии на кабеле до проверки прокуратуры и зарплат сотен людей. Он не мыслит отдельными IT-фичами, он мыслит рисками всего филиала. Если проект угрожает стабильности P&L — он его заблокирует»."
+      },
+      {
+        title: "KPI Стратегии-2030",
+        text: "«Посмотрите на эти цифры. Корпоративный центр требует ежегодного роста цифрового бизнеса на 15% при сохранении маржинальности 37–38%. Для директора филиала госконтракты — это не благотворительность, а единственный инструмент выполнить норматив по приросту маржинальной выручки»."
+      },
+      {
+        title: "Контур P&L филиала",
+        text: "«В традиционном телекоме расти кратно уже невозможно, там идет борьба за удержание абонентов и оптимизацию расходов. Единственный драйвер качественного скачка выручки региона — наш цифровой бизнес. Помогите директору закрыть его план»."
+      },
+      {
+        title: "Повестка первого лица",
+        text: "«Губернатору не нужны коробки с оборудованием или серверы. Ему нужно выполнение показателей Указа № 1014 перед Администрацией Президента и зеленая зона в рейтинге РЦТ Минцифры. Директор идет на встречу решать именно эти задачи»."
+      },
+      {
+        title: "Продуктовый ряд",
+        text: "«Говорите с директором не о технологиях, а о структуре контракта. Тот же энергосервис — идеальный продукт: регион получает модернизацию без прямой нагрузки на казну, а филиал гарантированно забирает длинную маржу на несколько лет вперед»."
+      },
+      {
+        title: "Стандарт One-Pager",
+        text: "«Директора филиалов на тренингах Натальи Дугиной учились именно этому формату: одна страница, 4 четких блока. Не приносите 50 страниц технического описания, дайте директору готовый One-Pager для визита к губернатору»."
+      },
+      {
+        title: "Практикум в зале",
+        text: "«А теперь давайте поработаем. У вас есть 5 минут. Возьмите один проект из текущей воронки и сформулируйте две вещи: какую строчку рейтинга губернатора он закрывает и какую конкретную запись в протокол встречи вы готовите директору. Время пошло!»"
+      },
+      {
+        title: "Внутренний диалог",
+        text: "«Почувствуйте разницу. Слабый зам приходит и просит ресурсы, пугая директора кассовыми разрывами. Сильный партнер приносит прогнозируемый портфель на 3 года и забирает исполнение на себя, прося от директора только политический статус»."
+      },
+      {
+        title: "Принятие решений",
+        text: "«Директор отклоняет проекты не из вредности, а из-за цены ошибки. Закройте три риска — кассовый разрыв, срыв сроков подрядчиками и риски ФАС — и вы получите полную поддержку первого лица филиала»."
+      },
+      {
+        title: "Внешний нетворкинг",
+        text: "«Директор часто утопает в операционке. Задача зама по цифре — вытаскивать его в Общественную палату, набсоветы вузов и на форумы, организуя личные встречи со всей линейкой ЛПР региона»."
+      },
+      {
+        title: "Формула совместного лидерства",
+        text: "«У директора филиала есть статус и вход к губернатору. У вас есть знание технологий и управляемая воронка. Объедините эти силы — и ваш филиал станет безусловным лидером в регионе. Спасибо!»"
+      },
+      {
+        title: "Приложение 1: Матрица проверки",
+        text: "«Это чек-лист для вашей команды: перед тем как идти к директору, проверьте сделку по 4 критериям. Если хоть один в красной зоне — доработайте внутри блока»."
+      },
+      {
+        title: "Приложение 2: Ритм встреч",
+        text: "«Синхронизируйтесь регулярно: 15 минут еженедельно на горящие вопросы, 45 минут в месяц на P&L и стратегическая сессия раз в квартал для закладки в бюджет следующего года»."
+      }
+    ];
+
+    let currentSlide = 1;
+    const totalSlides = 14;
+
+    // СИСТЕМА АВТОРИЗАЦИИ СПИКЕРА
+    const SPEAKER_PIN = "1014"; // Символичный PIN (Указ № 1014)
+    let isSpeakerAuthorized = false;
+
+    // Проверка URL параметров и сессии
+    function checkSpeakerAuth() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const urlPin = urlParams.get('pin');
+
+      if (urlPin === SPEAKER_PIN || sessionStorage.getItem('rtk_speaker_auth') === 'true') {
+        unlockSpeakerMode(false);
+      } else {
+        lockSpeakerMode();
+      }
+    }
+
+    function unlockSpeakerMode(showToastMsg = true) {
+      isSpeakerAuthorized = true;
+      sessionStorage.setItem('rtk_speaker_auth', 'true');
+
+      // Обновляем бейдж роли
+      const roleDot = document.getElementById('roleDot');
+      const roleLabel = document.getElementById('roleLabel');
+      if (roleDot && roleLabel) {
+        roleDot.className = 'w-1.5 h-1.5 rounded-full bg-emerald-500';
+        roleLabel.textContent = 'Спикер: Иван';
+        roleLabel.classList.add('text-brand-purple', 'font-bold');
+      }
+
+      // Показываем кнопку очереди кейсов для спикера
+      const queueBtn = document.getElementById('liveQueueBtn');
+      if (queueBtn) queueBtn.classList.remove('hidden');
+      if (queueBtn) queueBtn.classList.add('flex');
+
+      // Обновляем кнопку заметок
+      const notesBtn = document.getElementById('notesToggleBtn');
+      const notesBtnText = document.getElementById('notesBtnText');
+      const lockIcon = document.getElementById('notesLockIcon');
+      if (notesBtnText) notesBtnText.textContent = 'Шпаргалка спикера';
+      if (notesBtn) notesBtn.classList.add('border-brand-purple', 'text-brand-purple');
+      if (lockIcon) {
+        lockIcon.outerHTML = '<svg id="notesLockIcon" class="w-3.5 h-3.5 text-brand-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>';
+      }
+
+      if (showToastMsg) {
+        showToast('Режим спикера активирован. Добро пожаловать, Иван!');
+      }
+    }
+
+    function lockSpeakerMode() {
+      isSpeakerAuthorized = false;
+      sessionStorage.removeItem('rtk_speaker_auth');
+
+      const roleDot = document.getElementById('roleDot');
+      const roleLabel = document.getElementById('roleLabel');
+      if (roleDot && roleLabel) {
+        roleDot.className = 'w-1.5 h-1.5 rounded-full bg-slate-400';
+        roleLabel.textContent = 'Участник';
+        roleLabel.classList.remove('text-brand-purple', 'font-bold');
+      }
+
+      // Скрываем кнопку очереди кейсов для зрителя
+      const queueBtn = document.getElementById('liveQueueBtn');
+      if (queueBtn) {
+        queueBtn.classList.add('hidden');
+        queueBtn.classList.remove('flex');
+      }
+
+      const notesBtnText = document.getElementById('notesBtnText');
+      const notesBtn = document.getElementById('notesToggleBtn');
+      if (notesBtnText) notesBtnText.textContent = 'Шпаргалка';
+      if (notesBtn) notesBtn.classList.remove('border-brand-purple', 'text-brand-purple');
+
+      // Закрываем панель заметок если была открыта
+      const drawer = document.getElementById('notesDrawer');
+      if (drawer && !drawer.classList.contains('translate-x-full')) {
+        drawer.classList.add('translate-x-full');
+      }
+    }
+
+    function handleNotesClick() {
+      if (isSpeakerAuthorized) {
+        toggleNotesDrawer();
+      } else {
+        openPinModal();
+      }
+    }
+
+    function openPinModal() {
+      const modal = document.getElementById('pinModal');
+      const input = document.getElementById('pinInput');
+      const error = document.getElementById('pinError');
+      error.classList.add('hidden');
+      input.value = '';
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+      setTimeout(() => input.focus(), 50);
+    }
+
+    function closePinModal() {
+      const modal = document.getElementById('pinModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function handlePinSubmit(e) {
+      e.preventDefault();
+      const input = document.getElementById('pinInput');
+      const error = document.getElementById('pinError');
+
+      if (input.value.trim() === SPEAKER_PIN) {
+        closePinModal();
+        unlockSpeakerMode(true);
+        toggleNotesDrawer();
+      } else {
+        error.classList.remove('hidden');
+        input.classList.add('border-red-400', 'bg-red-50/30');
+        setTimeout(() => {
+          input.classList.remove('border-red-400', 'bg-red-50/30');
+        }, 1200);
+      }
+    }
+
+    function exitSpeakerMode() {
+      lockSpeakerMode();
+      showToast('Режим спикера заблокирован');
+    }
+
+    // Инициализация при загрузке
+    window.addEventListener('DOMContentLoaded', () => {
+      showSlide(1);
+      buildOverviewList();
+      updateNotesView();
+      checkSpeakerAuth();
+    });
+
+    // Переключение слайдов
+    function showSlide(index) {
+      if (index < 1) index = 1;
+      if (index > totalSlides) index = totalSlides;
+
+      currentSlide = index;
+
+      document.querySelectorAll('.slide-view').forEach((el, idx) => {
+        if (idx + 1 === currentSlide) {
+          el.classList.add('active');
+        } else {
+          el.classList.remove('active');
+        }
+      });
+
+      // Обновление индикатора
+      const padCurrent = currentSlide < 10 ? `0${currentSlide}` : currentSlide;
+      const padTotal = totalSlides < 10 ? `0${totalSlides}` : totalSlides;
+      document.getElementById('slideIndicator').textContent = `${padCurrent} / ${padTotal}`;
+
+      // Обновление прогресс-бара
+      const progressPercent = (currentSlide / totalSlides) * 100;
+      document.getElementById('progressBar').style.width = `${progressPercent}%`;
+
+      updateNotesView();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) {
+        showSlide(currentSlide + 1);
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) {
+        showSlide(currentSlide - 1);
+      }
+    }
+
+    // Клавиатурная навигация
+    window.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        prevSlide();
+      } else if (e.key === 'f' || e.key === 'F') {
+        toggleFullscreen();
+      }
+    });
+
+    // Полноэкранный режим
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+      }
+    }
+
+    // Обновление заметок спикера
+    function updateNotesView() {
+      const note = speakerNotes[currentSlide - 1];
+      if (note) {
+        document.getElementById('notesSlideNumber').textContent = currentSlide;
+        document.getElementById('notesSlideTitle').textContent = note.title;
+        document.getElementById('notesContentText').textContent = note.text;
+      }
+    }
+
+    function toggleNotesDrawer() {
+      const drawer = document.getElementById('notesDrawer');
+      drawer.classList.toggle('translate-x-full');
+    }
+
+    // Оглавление
+    function buildOverviewList() {
+      const list = document.getElementById('overviewList');
+      list.innerHTML = '';
+      speakerNotes.forEach((item, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'text-left p-3 rounded-xl border border-brand-border hover:border-brand-purple hover:bg-slate-50 transition flex items-center justify-between text-xs font-semibold text-brand-dark';
+        btn.innerHTML = `
+          <span class="flex items-center gap-2">
+            <span class="text-brand-purple font-mono font-bold">${index + 1 < 10 ? '0' + (index + 1) : index + 1}.</span>
+            <span>${item.title}</span>
+          </span>
+          <span class="text-brand-muted text-[10px] uppercase">Перейти →</span>
+        `;
+        btn.onclick = () => {
+          showSlide(index + 1);
+          toggleOverviewModal();
+        };
+        list.appendChild(btn);
+      });
+    }
+
+    function toggleOverviewModal() {
+      const modal = document.getElementById('overviewModal');
+      modal.classList.toggle('hidden');
+      modal.classList.toggle('flex');
+    }
+
+    // QR модалка
+    function openQrModal() {
+      const modal = document.getElementById('qrModal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeQrModal() {
+      const modal = document.getElementById('qrModal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    // 2. ДВИЖОК ТАЙМЕРА ДЛЯ ПРАКТИКУМА
+    let timerTotalSeconds = 5 * 60;
+    let timerRemaining = timerTotalSeconds;
+    let timerInterval = null;
+    let isTimerRunning = false;
+
+    // Звуковой гонг на Web Audio API (без внешних файлов)
+    function playChime(freq1 = 587.33, freq2 = 880.00) {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const now = audioCtx.currentTime;
+
+        const osc1 = audioCtx.createOscillator();
+        const osc2 = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(freq1, now);
+        osc2.type = 'triangle';
+        osc2.frequency.setValueAtTime(freq2, now);
+
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(0.3, now + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 1.6);
+
+        osc1.connect(gain);
+        osc2.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc1.start(now);
+        osc2.start(now);
+        osc1.stop(now + 1.6);
+        osc2.stop(now + 1.6);
+      } catch (e) {
+        console.debug('Audio chime prevented by autoplay policy', e);
+      }
+    }
+
+    function updateTimerUI() {
+      const mins = Math.floor(timerRemaining / 60);
+      const secs = timerRemaining % 60;
+      const str = `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
+      document.getElementById('timerDigits').textContent = str;
+
+      const container = document.getElementById('timerDisplayContainer');
+      if (isTimerRunning) {
+        container.classList.add('timer-running');
+      } else {
+        container.classList.remove('timer-running');
+      }
+    }
+
+    function toggleTimer() {
+      if (isTimerRunning) {
+        // Пауза
+        clearInterval(timerInterval);
+        isTimerRunning = false;
+        document.getElementById('timerToggleIcon').textContent = '▶';
+        document.getElementById('timerToggleText').textContent = 'Продолжить';
+        document.getElementById('timerStatusLabel').textContent = 'На паузе';
+        updateTimerUI();
+      } else {
+        // Старт
+        playChime(659.25, 987.77);
+        isTimerRunning = true;
+        document.getElementById('timerToggleIcon').textContent = '⏸';
+        document.getElementById('timerToggleText').textContent = 'Пауза';
+        document.getElementById('timerStatusLabel').textContent = 'Идет работа';
+
+        timerInterval = setInterval(() => {
+          if (timerRemaining > 0) {
+            timerRemaining--;
+            updateTimerUI();
+
+            // Звуковое оповещение за 1 минуту
+            if (timerRemaining === 60) {
+              playChime(523.25, 783.99);
+              showToast('Осталась 1 минута практикума!');
+            }
+          } else {
+            clearInterval(timerInterval);
+            isTimerRunning = false;
+            document.getElementById('timerToggleIcon').textContent = '▶';
+            document.getElementById('timerToggleText').textContent = 'Старт';
+            document.getElementById('timerStatusLabel').textContent = 'Время вышло!';
+            updateTimerUI();
+            playChime(440.00, 659.25);
+            showToast('Время практикума завершено!');
+          }
+        }, 1000);
+        updateTimerUI();
+      }
+    }
+
+    function resetTimer() {
+      clearInterval(timerInterval);
+      isTimerRunning = false;
+      timerRemaining = 5 * 60;
+      document.getElementById('timerToggleIcon').textContent = '▶';
+      document.getElementById('timerToggleText').textContent = 'Старт';
+      document.getElementById('timerStatusLabel').textContent = 'Ожидание старта';
+      updateTimerUI();
+    }
+
+    function addMinute() {
+      timerRemaining += 60;
+      updateTimerUI();
+      showToast('Добавлена 1 минута');
+    }
+
+    // 3. СИСТЕМА ЖИВОГО ОБМЕНА КЕЙСАМИ (СИНХРОНИЗАЦИЯ НА ЭКРАН)
+    // Поддержка Cloud Firestore + надежный fallback через BroadcastChannel для локальной работы
+    let submittedCases = [];
+    let currentSpotlightCase = null;
+    const stageBroadcast = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('rtk_pnl_stage_sync') : null;
+
+    if (stageBroadcast) {
+      stageBroadcast.onmessage = (event) => {
+        const { type, payload } = event.data;
+        if (type === 'NEW_CASE') {
+          handleIncomingCase(payload);
+        } else if (type === 'SPOTLIGHT_CHANGE') {
+          renderSpotlight(payload);
+        } else if (type === 'CLEAR_SPOTLIGHT') {
+          clearStageSpotlightUI();
+        } else if (type === 'CLEAR_ALL') {
+          submittedCases = [];
+          updateQueueBadge();
+          renderQueueList();
+        }
+      };
+    }
+
+    function submitCaseToStage() {
+      const author = document.getElementById('wbAuthorName').value.trim() || 'Участник из зала';
+      const proj = document.getElementById('wbProjectName').value.trim();
+      const kpi = document.getElementById('wbGovKpi').value.trim();
+      const econ = document.getElementById('wbEconomics').value.trim();
+      const prot = document.getElementById('wbProtocolText').value.trim();
+
+      if (!proj && !kpi && !prot) {
+        showToast('Заполните хотя бы проект или формулировку поручения');
+        return;
+      }
+
+      const newCase = {
+        id: 'case_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+        author: author,
+        project: proj || 'Проект цифровизации',
+        kpi: kpi || 'Показатель Указа № 1014 / РЦТ',
+        economics: econ || 'Согласовано в рамках нормативов P&L',
+        protocol: prot || 'Проект поручения в итоговый протокол встречи',
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+
+      // Локальное добавление и широковещательная отправка
+      handleIncomingCase(newCase);
+      if (stageBroadcast) {
+        stageBroadcast.postMessage({ type: 'NEW_CASE', payload: newCase });
+      }
+
+      showToast('Кейс отправлен на экран спикера!');
+    }
+
+    function handleIncomingCase(c) {
+      if (!submittedCases.some(item => item.id === c.id)) {
+        submittedCases.unshift(c);
+        updateQueueBadge();
+        renderQueueList();
+      }
+    }
+
+    function updateQueueBadge() {
+      const badge = document.getElementById('queueCount');
+      if (badge) badge.textContent = submittedCases.length;
+    }
+
+    function toggleQueueModal() {
+      const modal = document.getElementById('queueModal');
+      modal.classList.toggle('hidden');
+      modal.classList.toggle('flex');
+      renderQueueList();
+    }
+
+    function renderQueueList() {
+      const container = document.getElementById('queueListContainer');
+      if (!container) return;
+
+      if (submittedCases.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8 text-brand-muted text-xs">
+            Очередь пока пуста. Когда участники нажмут кнопку «Отправить на экран», их проекты появятся здесь.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = '';
+      submittedCases.forEach((item, idx) => {
+        const div = document.createElement('div');
+        div.className = 'p-4 rounded-xl border border-brand-border bg-slate-50 hover:bg-white hover:border-brand-purple transition flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3';
+        div.innerHTML = `
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-xs font-bold text-brand-purple">${item.author}</span>
+              <span class="text-[10px] text-brand-muted">• ${item.time}</span>
+            </div>
+            <div class="text-sm font-bold text-brand-dark">${item.project}</div>
+            <div class="text-xs text-brand-sub mt-0.5 line-clamp-1">${item.protocol}</div>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <button onclick="setSpotlightCase('${item.id}')" class="px-3 py-1.5 bg-brand-purple hover:bg-[#4d2dbf] text-white text-xs font-bold rounded-lg transition shadow-sm">
+              Вывести на экран
+            </button>
+            <button onclick="removeCase('${item.id}')" class="p-1.5 text-slate-400 hover:text-red-500 rounded-lg">
+              ✕
+            </button>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function setSpotlightCase(caseId) {
+      const found = submittedCases.find(c => c.id === caseId);
+      if (!found) return;
+
+      currentSpotlightCase = found;
+      renderSpotlight(found);
+
+      if (stageBroadcast) {
+        stageBroadcast.postMessage({ type: 'SPOTLIGHT_CHANGE', payload: found });
+      }
+
+      // Закрываем модальное окно очереди и переходим к слайду 8
+      const modal = document.getElementById('queueModal');
+      if (modal && !modal.classList.contains('hidden')) {
+        toggleQueueModal();
+      }
+      showSlide(8);
+      showToast(`Кейс «${found.project}» выведен на экран`);
+    }
+
+    function renderSpotlight(data) {
+      if (!data) return;
+      currentSpotlightCase = data;
+
+      const display = document.getElementById('spotlightDisplay');
+      document.getElementById('spotlightProjectTitle').textContent = data.project;
+      document.getElementById('spotlightAuthorBadge').textContent = `Автор: ${data.author}`;
+      document.getElementById('spotlightGovKpi').textContent = data.kpi;
+      document.getElementById('spotlightEconomics').textContent = data.economics;
+      document.getElementById('spotlightProtocol').textContent = `«${data.protocol}»`;
+
+      if (display) display.classList.remove('hidden');
+    }
+
+    function clearStageSpotlight() {
+      clearStageSpotlightUI();
+      if (stageBroadcast) {
+        stageBroadcast.postMessage({ type: 'CLEAR_SPOTLIGHT' });
+      }
+      showToast('Экран очищен');
+    }
+
+    function clearStageSpotlightUI() {
+      currentSpotlightCase = null;
+      const display = document.getElementById('spotlightDisplay');
+      if (display) display.classList.add('hidden');
+    }
+
+    function showNextQueuedCase() {
+      if (submittedCases.length === 0) {
+        showToast('В очереди больше нет кейсов');
+        return;
+      }
+
+      if (!currentSpotlightCase) {
+        setSpotlightCase(submittedCases[0].id);
+        return;
+      }
+
+      const currentIndex = submittedCases.findIndex(c => c.id === currentSpotlightCase.id);
+      const nextIndex = (currentIndex + 1) % submittedCases.length;
+      setSpotlightCase(submittedCases[nextIndex].id);
+    }
+
+    function removeCase(caseId) {
+      submittedCases = submittedCases.filter(c => c.id !== caseId);
+      updateQueueBadge();
+      renderQueueList();
+      if (currentSpotlightCase && currentSpotlightCase.id === caseId) {
+        clearStageSpotlight();
+      }
+    }
+
+    function clearAllCases() {
+      submittedCases = [];
+      updateQueueBadge();
+      renderQueueList();
+      clearStageSpotlight();
+      if (stageBroadcast) {
+        stageBroadcast.postMessage({ type: 'CLEAR_ALL' });
+      }
+      showToast('Очередь полностью очищена');
+    }
+
+    // Копирование One-Pager из полей формы
+    function copyWorkbookBrief() {
+      const author = document.getElementById('wbAuthorName').value.trim() || 'Участник';
+      const proj = document.getElementById('wbProjectName').value.trim() || 'Проект цифровизации';
+      const kpi = document.getElementById('wbGovKpi').value.trim() || 'Указ № 1014 / РЦТ Минцифры';
+      const econ = document.getElementById('wbEconomics').value.trim() || 'Выручка согласована в рамках P&L';
+      const prot = document.getElementById('wbProtocolText').value.trim() || 'Поручение профильному ведомству...';
+
+      const fullText = `[ СТАНДАРТ ONE-PAGER ДЛЯ ДИРЕКТОРА ФИЛИАЛА ]\nАвтор: ${author}\n\n1. НАИМЕНОВАНИЕ ПРОЕКТА:\n${proj}\n\n2. ЦЕЛЬ ДЛЯ ГУБЕРНАТОРА (УКАЗ 1014 / РЦТ):\n${kpi}\n\n3. ЭКОНОМИКА ФИЛИАЛА:\n${econ}\n\n4. ПОРУЧЕНИЕ В ПРОТОКОЛ ВСТРЕЧИ:\n${prot}`;
+
+      // Копирование в буфер обмена через совместимый fallback
+      const tempArea = document.createElement('textarea');
+      tempArea.value = fullText;
+      tempArea.style.position = 'fixed';
+      tempArea.style.left = '-9999px';
+      document.body.appendChild(tempArea);
+      tempArea.select();
+
+      try {
+        document.execCommand('copy');
+        showToast('One-Pager успешно скопирован в буфер!');
+      } catch (err) {
+        showToast('Не удалось скопировать. Выделите текст вручную.');
+      }
+      document.body.removeChild(tempArea);
+    }
+
+    // Всплывающие уведомления (Toast)
+    function showToast(msg) {
+      const toast = document.getElementById('toastNotification');
+      const toastMessage = document.getElementById('toastMessage');
+      toastMessage.textContent = msg;
+
+      toast.classList.remove('translate-y-16', 'opacity-0');
+      toast.classList.add('translate-y-0', 'opacity-100');
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-0', 'opacity-100');
+        toast.classList.add('translate-y-16', 'opacity-0');
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
