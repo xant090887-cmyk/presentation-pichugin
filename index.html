@@ -2,10 +2,10 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Как говорить с директором филиала на языке P&L — Иван Пичугин</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
     :root {
       --bg-page: #F4F6F9;
@@ -30,6 +30,7 @@
       margin: 0;
       padding: 0;
       -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
     }
 
     body {
@@ -38,76 +39,82 @@
       color: var(--text-main);
       display: flex;
       flex-direction: column;
-      height: 100vh;
-      overflow: hidden;
+      min-height: 100dvh;
+      overflow-x: hidden;
     }
 
-    /* Верхняя панель управления */
+    /* Верхняя панель */
     .top-nav {
-      height: 56px;
+      min-height: 54px;
       background: #FFFFFF;
       border-bottom: 1px solid var(--border-card);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 24px;
+      padding: 8px 16px;
       flex-shrink: 0;
       z-index: 100;
+      gap: 12px;
+      position: sticky;
+      top: 0;
     }
     .nav-brand {
       display: flex;
       align-items: center;
-      gap: 12px;
-      font-size: 13px;
+      gap: 8px;
+      font-size: 12px;
       font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.05em;
       color: var(--rt-purple);
+      white-space: nowrap;
     }
     .brand-dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
       background: var(--rt-orange);
+      flex-shrink: 0;
     }
     .status-badge {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 6px 14px;
+      gap: 6px;
+      padding: 4px 10px;
       border-radius: 980px;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 600;
       background: #F1F5F9;
       color: var(--text-sub);
+      white-space: nowrap;
     }
     .status-badge.speaker {
       background: var(--accent-soft-purple);
       color: var(--rt-purple);
-      border: 1px solid rgba(91, 54, 214, 0.2);
+      border: 1px solid rgba(91, 54, 214, 0.25);
     }
     .pulse-dot {
-      width: 8px;
-      height: 8px;
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
       background: var(--accent-green);
-      animation: pulse 1.5s infinite;
+      animation: pulse 1.6s infinite ease-in-out;
+      flex-shrink: 0;
     }
     @keyframes pulse {
-      0% { transform: scale(0.95); opacity: 0.7; }
-      50% { transform: scale(1.2); opacity: 1; }
-      100% { transform: scale(0.95); opacity: 0.7; }
+      0%, 100% { transform: scale(0.9); opacity: 0.6; }
+      50% { transform: scale(1.25); opacity: 1; }
     }
 
     .nav-actions {
       display: flex;
       align-items: center;
-      gap: 10px;
+      gap: 8px;
     }
     .btn {
-      padding: 8px 16px;
+      padding: 7px 13px;
       border-radius: 8px;
-      font-size: 13px;
+      font-size: 12.5px;
       font-weight: 600;
       border: 1px solid var(--border-card);
       background: #FFFFFF;
@@ -115,59 +122,48 @@
       cursor: pointer;
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 6px;
       transition: all 0.15s ease;
+      white-space: nowrap;
     }
-    .btn:hover {
-      background: #F8FAFC;
-    }
-    .btn-primary {
-      background: var(--rt-purple);
-      color: #FFFFFF;
-      border-color: var(--rt-purple);
-    }
-    .btn-primary:hover {
-      background: #4C2BB7;
-    }
-    .btn-orange {
-      background: var(--rt-orange);
-      color: #FFFFFF;
-      border-color: var(--rt-orange);
-    }
+    .btn:hover { background: #F8FAFC; }
+    .btn-primary { background: var(--rt-purple); color: #FFFFFF; border-color: var(--rt-purple); }
+    .btn-primary:hover { background: #4C2BB7; }
+    .btn-orange { background: var(--rt-orange); color: #FFFFFF; border-color: var(--rt-orange); }
+    .btn-orange:hover { background: #E03E05; }
     .btn-queue {
-      position: relative;
       background: var(--accent-soft-orange);
       color: var(--rt-orange);
       border-color: rgba(255, 79, 18, 0.3);
     }
 
-    /* Основная рабочая область */
+    /* Рабочая область просмотра */
     .viewport {
       flex: 1;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 20px;
-      min-height: 0;
+      padding: 16px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
     }
 
     .slide-frame {
       width: 100%;
       max-width: 1280px;
-      height: 100%;
-      max-height: 720px;
+      min-height: 580px;
       background: var(--bg-page);
       border: 1px solid var(--border-card);
       border-radius: var(--radius-md);
-      padding: 40px 48px;
+      padding: 36px 40px;
       display: flex;
       flex-direction: column;
       position: relative;
-      overflow-y: auto;
     }
 
     .header-group {
-      margin-bottom: 20px;
+      margin-bottom: 22px;
       flex-shrink: 0;
     }
     .tag {
@@ -192,78 +188,98 @@
       font-size: 28px;
       font-weight: 700;
       letter-spacing: -0.02em;
-      line-height: 1.2;
+      line-height: 1.25;
       color: var(--text-main);
     }
+
     .slide-content {
       flex: 1;
       display: flex;
       flex-direction: column;
-      min-height: 0;
     }
 
-    /* Нижняя панель листания */
+    /* Нижняя панель навигации */
     .bottom-bar {
-      height: 52px;
+      min-height: 52px;
       background: #FFFFFF;
       border-top: 1px solid var(--border-card);
       display: flex;
       align-items: center;
       justify-content: space-between;
-      padding: 0 24px;
+      padding: 8px 16px;
       flex-shrink: 0;
+      position: sticky;
+      bottom: 0;
+      z-index: 90;
     }
     .counter {
-      font-size: 13px;
+      font-size: 12.5px;
       font-weight: 600;
       color: var(--text-muted);
     }
 
-    /* Слайд 1: Титул */
-    .title-grid {
-      display: grid;
-      grid-template-columns: 1.15fr 0.85fr;
-      gap: 40px;
-      height: 100%;
+    /* Слайд 1: Титул (без дублей) */
+    .hero-center {
+      display: flex;
+      flex-direction: column;
       align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 24px 0;
+      max-width: 900px;
+      margin: auto;
     }
     .hero-title {
-      font-size: 46px;
-      font-weight: 700;
+      font-size: 44px;
+      font-weight: 800;
       letter-spacing: -0.03em;
-      line-height: 1.12;
+      line-height: 1.15;
       margin-bottom: 18px;
+      color: var(--text-main);
     }
     .hero-subtitle {
-      font-size: 18px;
-      color: var(--text-muted);
+      font-size: 19px;
+      color: var(--text-sub);
       line-height: 1.45;
       margin-bottom: 28px;
+      max-width: 740px;
     }
     .speaker-pill {
       display: inline-flex;
       align-items: center;
       gap: 10px;
-      padding: 10px 20px;
+      padding: 10px 22px;
       background: #FFFFFF;
       border: 1px solid var(--border-card);
       border-radius: 980px;
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 600;
+      margin-bottom: 36px;
     }
-    .agenda-box {
+    .agenda-box-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--rt-purple);
+      margin-bottom: 14px;
+      text-align: left;
+    }
+    .agenda-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      text-align: left;
+      width: 100%;
+    }
+    .agenda-card {
       background: #FFFFFF;
       border: 1px solid var(--border-card);
       border-radius: var(--radius-md);
-      padding: 26px;
+      padding: 18px 20px;
       display: flex;
       flex-direction: column;
-      gap: 16px;
-    }
-    .agenda-item {
-      display: flex;
-      gap: 14px;
-      align-items: flex-start;
+      gap: 8px;
     }
     .agenda-num {
       width: 26px;
@@ -276,43 +292,47 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      flex-shrink: 0;
+    }
+    .agenda-text-title {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+    .agenda-text-desc {
+      font-size: 13px;
+      color: var(--text-sub);
+      line-height: 1.4;
     }
 
     /* Слайд 2: Профиль */
     .profile-grid {
       display: grid;
-      grid-template-columns: 340px 1fr;
-      gap: 24px;
-      height: 100%;
+      grid-template-columns: 320px 1fr;
+      gap: 20px;
     }
     .summary-card {
       background: #FFFFFF;
       border: 1px solid var(--border-card);
       border-radius: var(--radius-md);
-      padding: 24px;
+      padding: 22px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
+      gap: 16px;
     }
     .stat-badge {
       background: var(--accent-soft-purple);
       border-radius: var(--radius-sm);
       padding: 14px;
-      margin-bottom: 12px;
     }
-    .stat-val { font-size: 26px; font-weight: 700; color: var(--rt-purple); margin-bottom: 4px; }
+    .stat-val { font-size: 26px; font-weight: 800; color: var(--rt-purple); margin-bottom: 4px; }
     .stat-lbl { font-size: 12px; font-weight: 500; color: var(--text-sub); }
-    .profile-list { display: flex; flex-direction: column; gap: 12px; height: 100%; }
+    .profile-list { display: flex; flex-direction: column; gap: 12px; }
     .profile-row {
       background: #FFFFFF;
       border: 1px solid var(--border-card);
       border-radius: var(--radius-md);
-      padding: 18px 22px;
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
+      padding: 16px 20px;
     }
 
     /* Слайд 3: KPI */
@@ -320,60 +340,56 @@
       display: grid;
       grid-template-columns: repeat(4, 1fr);
       gap: 16px;
-      margin-bottom: 20px;
+      margin-bottom: 18px;
     }
     .kpi-box {
       background: #FFFFFF;
       border: 1px solid var(--border-card);
       border-radius: var(--radius-md);
-      padding: 22px 16px;
+      padding: 20px 16px;
       text-align: center;
     }
-    .kpi-num { font-size: 40px; font-weight: 700; color: var(--rt-purple); margin-bottom: 6px; }
-    .kpi-lbl { font-size: 13.5px; color: var(--text-sub); }
+    .kpi-num { font-size: 36px; font-weight: 800; color: var(--rt-purple); margin-bottom: 6px; }
+    .kpi-lbl { font-size: 13px; color: var(--text-sub); }
     .kpi-insight {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 16px;
-      flex: 1;
     }
     .insight-card {
       background: #FFFFFF;
       border: 1px solid var(--border-card);
       border-radius: var(--radius-md);
-      padding: 20px 24px;
+      padding: 20px 22px;
     }
 
-    /* Слайд 4: P&L */
+    /* Общие сетки */
     .three-cols {
       display: grid;
       grid-template-columns: repeat(3, 1fr);
-      gap: 20px;
-      height: 100%;
+      gap: 16px;
     }
     .col-card {
       background: #FFFFFF;
       border: 1px solid var(--border-card);
       border-radius: var(--radius-md);
-      padding: 24px;
+      padding: 22px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
     }
     .col-card.lead { border: 2px solid var(--rt-purple); background: #FAF9FF; }
 
-    /* Слайд 6: Продукты */
     .matrix-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
       gap: 16px;
-      height: 100%;
     }
     .prod-card {
       background: #FFFFFF;
       border: 1px solid var(--border-card);
       border-radius: var(--radius-md);
-      padding: 20px 24px;
+      padding: 18px 22px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -382,38 +398,36 @@
     /* Слайд 8: Практикум и форма One-Pager */
     .ws-container {
       display: grid;
-      grid-template-columns: 360px 1fr;
+      grid-template-columns: 320px 1fr;
       gap: 20px;
-      height: 100%;
     }
     .timer-panel {
       background: #FFFFFF;
       border: 1px solid var(--border-card);
       border-radius: var(--radius-md);
-      padding: 24px;
+      padding: 22px;
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
       text-align: center;
+      gap: 12px;
     }
     .timer-digits {
-      font-size: 56px;
-      font-weight: 700;
+      font-size: 52px;
+      font-weight: 800;
       color: var(--rt-orange);
       letter-spacing: -0.02em;
-      margin: 12px 0;
       font-variant-numeric: tabular-nums;
     }
     .timer-status {
       font-size: 13px;
       font-weight: 600;
       color: var(--text-muted);
-      margin-bottom: 20px;
     }
     .timer-controls {
       display: flex;
-      gap: 8px;
+      gap: 6px;
       flex-wrap: wrap;
       justify-content: center;
     }
@@ -422,11 +436,10 @@
       background: #FFFFFF;
       border: 1px solid var(--border-card);
       border-radius: var(--radius-md);
-      padding: 24px;
+      padding: 22px;
       display: flex;
       flex-direction: column;
       gap: 12px;
-      overflow-y: auto;
     }
     .form-row {
       display: flex;
@@ -442,22 +455,32 @@
     }
     .form-input, .form-textarea {
       width: 100%;
-      padding: 8px 12px;
+      padding: 10px 12px;
       border: 1px solid var(--border-card);
       border-radius: 6px;
       font-family: inherit;
-      font-size: 13.5px;
+      font-size: 14.5px;
       color: var(--text-main);
       background: #FAF8FC;
     }
-    .form-textarea { resize: none; height: 50px; }
+    .form-textarea { resize: vertical; min-height: 56px; }
     .form-input:focus, .form-textarea:focus {
       outline: none;
       border-color: var(--rt-purple);
       background: #FFFFFF;
     }
 
-    /* Модальное окно очереди кейсов */
+    .projected-case-banner {
+      display: none;
+      background: #FFFFFF;
+      border: 2px solid var(--rt-purple);
+      border-radius: var(--radius-md);
+      padding: 22px;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    /* Модальное окно очереди */
     .modal-overlay {
       position: fixed;
       inset: 0;
@@ -466,14 +489,14 @@
       align-items: center;
       justify-content: center;
       z-index: 1000;
-      padding: 20px;
+      padding: 16px;
     }
     .modal-box {
       width: 100%;
-      max-width: 720px;
+      max-width: 640px;
       background: #FFFFFF;
       border-radius: var(--radius-lg);
-      padding: 32px;
+      padding: 24px;
       max-height: 85vh;
       display: flex;
       flex-direction: column;
@@ -482,52 +505,119 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
     }
-    .modal-title { font-size: 20px; font-weight: 700; }
     .queue-list {
       display: flex;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
       overflow-y: auto;
-      flex: 1;
     }
     .queue-item {
       border: 1px solid var(--border-card);
       border-radius: var(--radius-sm);
-      padding: 16px;
+      padding: 14px;
       display: flex;
       justify-content: space-between;
       align-items: center;
       background: #F8FAFC;
+      gap: 12px;
     }
 
-    /* Баннер презентации выбранного кейса на Слайде 8 */
-    .projected-case-banner {
-      display: none;
-      background: #FFFFFF;
-      border: 2px solid var(--rt-purple);
-      border-radius: var(--radius-md);
-      padding: 24px;
-      flex-direction: column;
-      gap: 16px;
-      height: 100%;
-    }
-
-    /* Тост оповещений */
     .toast {
       position: fixed;
-      bottom: 70px;
-      right: 24px;
+      bottom: 66px;
+      right: 16px;
+      left: 16px;
+      max-width: 420px;
+      margin: 0 auto;
       background: #0F172A;
       color: #FFFFFF;
-      padding: 12px 20px;
+      padding: 12px 18px;
       border-radius: 8px;
       font-size: 13.5px;
       font-weight: 500;
       display: none;
       z-index: 1000;
       box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+      text-align: center;
+    }
+
+    /* ========================================================
+       АДАПТИВНОСТЬ ДЛЯ СМАРТФОНОВ И ПЛАНШЕТОВ (MOBILE FIRST)
+       ======================================================== */
+    @media (max-width: 900px) {
+      .viewport {
+        padding: 10px 8px;
+      }
+      .slide-frame {
+        padding: 20px 16px;
+        min-height: auto;
+        border-radius: var(--radius-sm);
+      }
+      .hero-title {
+        font-size: 28px;
+        line-height: 1.2;
+      }
+      .hero-subtitle {
+        font-size: 15px;
+        margin-bottom: 20px;
+      }
+      .slide-title {
+        font-size: 20px;
+      }
+      .agenda-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      .profile-grid {
+        grid-template-columns: 1fr;
+        gap: 14px;
+      }
+      .kpi-row {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+      .kpi-num {
+        font-size: 28px;
+      }
+      .kpi-insight {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+      .three-cols {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      .matrix-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      /* На Слайде 8: вертикальное расположение без необходимости крутить телефон */
+      .ws-container {
+        grid-template-columns: 1fr;
+        gap: 16px;
+      }
+      .timer-digits {
+        font-size: 40px;
+      }
+      .form-input, .form-textarea {
+        font-size: 16px; /* Предотвращает нежелательный зум на iPhone */
+      }
+      .nav-brand span:last-child {
+        display: none;
+      }
+      .status-badge {
+        font-size: 10px;
+        padding: 3px 8px;
+      }
+      .top-nav {
+        padding: 6px 12px;
+      }
+      .btn {
+        padding: 6px 10px;
+        font-size: 11.5px;
+      }
     }
   </style>
 </head>
@@ -537,23 +627,24 @@
   <header class="top-nav">
     <div class="nav-brand">
       <span class="brand-dot"></span>
-      <span>Цифровые регионы • Сессия P&L</span>
+      <span>Цифровые регионы</span>
+      <span style="color:var(--text-muted); font-weight:500;">/ P&L</span>
     </div>
 
     <div id="roleBadge" class="status-badge">
       <span class="pulse-dot"></span>
-      <span id="roleText">Подключение к сети...</span>
+      <span id="roleText">Подключение...</span>
     </div>
 
     <div class="nav-actions">
       <button id="btnQueue" class="btn btn-queue" style="display: none;" onclick="openQueueModal()">
-        <span>📩 Очередь кейсов</span>
+        <span>📩 Кейсы</span>
         <strong id="queueCounter">(0)</strong>
       </button>
 
       <button id="btnAuth" class="btn" onclick="promptAuth()">
         <span id="authIcon">🔒</span>
-        <span id="authText">Вход для спикера</span>
+        <span id="authText">Спикер</span>
       </button>
     </div>
   </header>
@@ -576,11 +667,11 @@
   <div class="modal-overlay" id="queueModal">
     <div class="modal-box">
       <div class="modal-head">
-        <h3 class="modal-title">Поступившие проекты участников</h3>
-        <button class="btn" onclick="closeQueueModal()">✕ Закрыть</button>
+        <h3 style="font-size:18px; font-weight:700;">Поступившие проекты из зала</h3>
+        <button class="btn" onclick="closeQueueModal()">✕</button>
       </div>
       <div class="queue-list" id="queueListContainer">
-        <div style="color: var(--text-muted); text-align: center; padding: 40px 0;">Очередь пока пуста</div>
+        <div style="color: var(--text-muted); text-align: center; padding: 30px 0;">Очередь пока пуста</div>
       </div>
     </div>
   </div>
@@ -608,27 +699,32 @@
     const slidesData = [
       {
         tag: "Цифровые регионы",
-        title: "Как говорить с директором филиала на языке P&L",
+        title: "", // Пусто, чтобы не было дубля шапки на титуле
         render: () => `
-          <div class="title-grid">
-            <div>
-              <h1 class="hero-title">Как говорить с директором филиала на языке P&L</h1>
-              <p class="hero-subtitle">Руководство по совместному управлению ростом бизнеса для заместителя по цифровому региону</p>
-              <div class="speaker-pill">🎙️ Иван Пичугин</div>
-            </div>
-            <div class="agenda-box">
-              <div style="font-size: 13px; font-weight: 700; text-transform: uppercase; color: var(--rt-purple);">Ключевые темы</div>
-              <div class="agenda-item">
-                <div class="agenda-num">1</div>
-                <div><strong>Экономика филиала и KPI 2026–2030</strong><br><span style="font-size:13px; color:var(--text-sub);">Взгляд директора на бизнес, баланс маржинальности и рисков</span></div>
-              </div>
-              <div class="agenda-item">
-                <div class="agenda-num">2</div>
-                <div><strong>Связка с повесткой губернатора</strong><br><span style="font-size:13px; color:var(--text-sub);">Указ № 1014, рейтинг РЦТ и упаковка решений</span></div>
-              </div>
-              <div class="agenda-item">
-                <div class="agenda-num">3</div>
-                <div><strong>Практика партнерства</strong><br><span style="font-size:13px; color:var(--text-sub);">Стандарт One-Pager, защита сделки и внешний нетворкинг</span></div>
+          <div class="hero-center">
+            <span class="tag" style="margin-bottom:12px;">Практика партнерства</span>
+            <h1 class="hero-title">Как говорить с директором филиала на языке P&L</h1>
+            <p class="hero-subtitle">Руководство по совместному управлению ростом бизнеса для заместителя по цифровому региону</p>
+            <div class="speaker-pill">🎙️ Иван Пичугин</div>
+
+            <div style="width:100%; max-width:860px;">
+              <div class="agenda-box-title">Программа сессии</div>
+              <div class="agenda-grid">
+                <div class="agenda-card">
+                  <div class="agenda-num">1</div>
+                  <div class="agenda-text-title">Экономика филиала и Стратегия-2030</div>
+                  <div class="agenda-text-desc">Взгляд директора на бизнес, баланс маржинальности и рисков</div>
+                </div>
+                <div class="agenda-card">
+                  <div class="agenda-num">2</div>
+                  <div class="agenda-text-title">Внешняя повестка и губернатор</div>
+                  <div class="agenda-text-desc">Указ № 1014, рейтинг РЦТ и упаковка решений в One-Pager</div>
+                </div>
+                <div class="agenda-card">
+                  <div class="agenda-num">3</div>
+                  <div class="agenda-text-title">Партнерство и нетворкинг</div>
+                  <div class="agenda-text-desc">Защита от рисков, воронка и выход на площадки региона</div>
+                </div>
               </div>
             </div>
           </div>
@@ -650,25 +746,25 @@
                   <div class="stat-lbl">Сотрудников в контуре ежедневного управления</div>
                 </div>
               </div>
-              <div style="font-size:13.5px; color:var(--text-sub); line-height:1.45;">
+              <div style="font-size:13px; color:var(--text-sub); line-height:1.45;">
                 Директор держит в фокусе аварии, безопасность, проверки надзорных органов и выполнение годового бизнес-плана.
               </div>
             </div>
             <div class="profile-list">
               <div class="profile-row">
-                <span style="font-size:12px; font-weight:700; color:var(--rt-purple); text-transform:uppercase;">Школа и опыт</span>
-                <strong style="margin:4px 0 6px;">Инженерная база и системный менеджмент</strong>
-                <p style="font-size:13.5px; color:var(--text-sub);">Возраст 44–56 лет. Программы EMBA или Президентская подготовка. Прошел стройку сетей или корпоративные продажи. Знает себестоимость каждого километра оптики.</p>
+                <span style="font-size:11px; font-weight:700; color:var(--rt-purple); text-transform:uppercase;">Школа и опыт</span>
+                <strong style="display:block; margin:4px 0 6px; font-size:15px;">Инженерная база и системный менеджмент</strong>
+                <p style="font-size:13px; color:var(--text-sub);">Возраст 44–56 лет. Программы EMBA или Президентская подготовка. Прошел стройку сетей или корпоративные продажи. Знает реальную себестоимость каждого километра оптики.</p>
               </div>
               <div class="profile-row">
-                <span style="font-size:12px; font-weight:700; color:var(--rt-purple); text-transform:uppercase;">Управленческий масштаб</span>
-                <strong style="margin:4px 0 6px;">Сотни операционных процессов</strong>
-                <p style="font-size:13.5px; color:var(--text-sub);">Управляет стройкой, эксплуатацией сетей, защитой гостайны, закупками и кадрами. Для него нет изолированных технических задач.</p>
+                <span style="font-size:11px; font-weight:700; color:var(--rt-purple); text-transform:uppercase;">Управленческий масштаб</span>
+                <strong style="display:block; margin:4px 0 6px; font-size:15px;">Сотни операционных процессов</strong>
+                <p style="font-size:13px; color:var(--text-sub);">Управляет стройкой, эксплуатацией сетей, защитой гостайны, закупками и кадрами. Для него нет изолированных технических задач.</p>
               </div>
               <div class="profile-row">
-                <span style="font-size:12px; font-weight:700; color:var(--rt-purple); text-transform:uppercase;">Принцип решений</span>
-                <strong style="margin:4px 0 6px;">Скорость при подтвержденной безопасности</strong>
-                <p style="font-size:13.5px; color:var(--text-sub);">Решения принимает быстро, но только если видит прозрачную финансовую окупаемость и отсутствие юридических или кассовых угроз.</p>
+                <span style="font-size:11px; font-weight:700; color:var(--rt-purple); text-transform:uppercase;">Принцип решений</span>
+                <strong style="display:block; margin:4px 0 6px; font-size:15px;">Скорость при подтвержденной безопасности</strong>
+                <p style="font-size:13px; color:var(--text-sub);">Решения принимает быстро, но только если видит прозрачную финансовую окупаемость и отсутствие юридических или кассовых угроз.</p>
               </div>
             </div>
           </div>
@@ -686,12 +782,12 @@
           </div>
           <div class="kpi-insight">
             <div class="insight-card">
-              <strong style="color:var(--rt-orange); text-transform:uppercase; font-size:13px;">Что это значит для директора</strong>
-              <p style="font-size:14.5px; color:var(--text-main); margin-top:8px;">Традиционный телеком больше не дает кратного роста. Единственный способ защитить бизнес-план — обеспечить опережающую динамику прикладных цифровых проектов.</p>
+              <strong style="color:var(--rt-orange); text-transform:uppercase; font-size:12px;">Что это значит для директора</strong>
+              <p style="font-size:14px; color:var(--text-main); margin-top:6px;">Традиционный телеком больше не дает кратного роста. Единственный способ защитить бизнес-план — обеспечить опережающую динамику прикладных цифровых проектов.</p>
             </div>
             <div class="insight-card">
-              <strong style="color:var(--rt-purple); text-transform:uppercase; font-size:13px;">В чем роль заместителя</strong>
-              <p style="font-size:14.5px; color:var(--text-main); margin-top:8px;">Госконтракты — не «социальная нагрузка», а основной канал формирования маржинальной выручки и выполнения личных показателей директора.</p>
+              <strong style="color:var(--rt-purple); text-transform:uppercase; font-size:12px;">В чем роль заместителя</strong>
+              <p style="font-size:14px; color:var(--text-main); margin-top:6px;">Госконтракты — не «социальная нагрузка», а основной канал формирования маржинальной выручки и выполнения личных показателей директора.</p>
             </div>
           </div>
         `
@@ -703,27 +799,27 @@
           <div class="three-cols">
             <div class="col-card">
               <div>
-                <span style="display:inline-block; font-size:11px; font-weight:700; padding:4px 8px; border-radius:6px; background:#F1F5F9; color:var(--text-sub); margin-bottom:12px;">СТАБИЛЬНОСТЬ</span>
-                <h3 style="font-size:18px; margin-bottom:8px;">Традиционный телеком</h3>
-                <p style="font-size:13.5px; color:var(--text-sub);">B2C и B2B, ШПД, ТВ и телефония. Формируют базовый денежный поток филиала. Фокус на удержании абонентской базы и контроле оттока.</p>
+                <span style="display:inline-block; font-size:11px; font-weight:700; padding:4px 8px; border-radius:6px; background:#F1F5F9; color:var(--text-sub); margin-bottom:10px;">СТАБИЛЬНОСТЬ</span>
+                <h3 style="font-size:17px; margin-bottom:6px;">Традиционный телеком</h3>
+                <p style="font-size:13px; color:var(--text-sub);">B2C и B2B, ШПД, ТВ и телефония. Формируют базовый денежный поток филиала. Главная задача — удержание базы и контроль оттока.</p>
               </div>
-              <div style="font-size:12px; font-weight:600; color:var(--text-muted); border-top:1px solid var(--border-card); padding-top:12px;">Удержание и оптимизация затрат</div>
+              <div style="font-size:12px; font-weight:600; color:var(--text-muted); border-top:1px solid var(--border-card); padding-top:10px; margin-top:12px;">Удержание и оптимизация затрат</div>
             </div>
             <div class="col-card">
               <div>
-                <span style="display:inline-block; font-size:11px; font-weight:700; padding:4px 8px; border-radius:6px; background:#F1F5F9; color:var(--text-sub); margin-bottom:12px;">НАДЕЖНОСТЬ</span>
-                <h3 style="font-size:18px; margin-bottom:8px;">Инфраструктура</h3>
-                <p style="font-size:13.5px; color:var(--text-sub);">Опорные сети, мобильные вышки, УЦН 2.0, эксплуатация, имущественный комплекс и государственная тайна.</p>
+                <span style="display:inline-block; font-size:11px; font-weight:700; padding:4px 8px; border-radius:6px; background:#F1F5F9; color:var(--text-sub); margin-bottom:10px;">НАДЕЖНОСТЬ</span>
+                <h3 style="font-size:17px; margin-bottom:6px;">Инфраструктура</h3>
+                <p style="font-size:13px; color:var(--text-sub);">Опорные сети, мобильные вышки, УЦН 2.0, эксплуатация, имущественный комплекс и государственная тайна.</p>
               </div>
-              <div style="font-size:12px; font-weight:600; color:var(--text-muted); border-top:1px solid var(--border-card); padding-top:12px;">Бесперебойность и себестоимость</div>
+              <div style="font-size:12px; font-weight:600; color:var(--text-muted); border-top:1px solid var(--border-card); padding-top:10px; margin-top:12px;">Бесперебойность и себестоимость</div>
             </div>
             <div class="col-card lead">
               <div>
-                <span style="display:inline-block; font-size:11px; font-weight:700; padding:4px 8px; border-radius:6px; background:var(--accent-soft-purple); color:var(--rt-purple); margin-bottom:12px;">ТОЧКА РОСТА P&L</span>
-                <h3 style="font-size:18px; margin-bottom:8px;">Цифровой бизнес</h3>
-                <p style="font-size:13.5px; color:var(--text-sub);">Облака, региональные ИС, ЦОД, кибербезопасность, ИТС и отраслевые решения. Единственный источник кратного роста выручки.</p>
+                <span style="display:inline-block; font-size:11px; font-weight:700; padding:4px 8px; border-radius:6px; background:var(--accent-soft-purple); color:var(--rt-purple); margin-bottom:10px;">ТОЧКА РОСТА P&L</span>
+                <h3 style="font-size:17px; margin-bottom:6px;">Цифровой бизнес</h3>
+                <p style="font-size:13px; color:var(--text-sub);">Облака, региональные ИС, ЦОД, кибербезопасность, ИТС и отраслевые решения. Единственный источник кратного роста выручки.</p>
               </div>
-              <div style="font-size:12px; font-weight:700; color:var(--rt-purple); border-top:1px solid var(--border-card); padding-top:12px;">Опережающий рост маржинальной выручки</div>
+              <div style="font-size:12px; font-weight:700; color:var(--rt-purple); border-top:1px solid var(--border-card); padding-top:10px; margin-top:12px;">Опережающий рост маржинальной выручки</div>
             </div>
           </div>
         `
@@ -735,27 +831,27 @@
           <div class="three-cols">
             <div class="col-card">
               <div>
-                <span style="font-size:12px; font-weight:700; color:var(--rt-purple);">ЭТАП 1. РЕЙТИНГ МИНЦИФРЫ</span>
-                <h3 style="font-size:18px; margin:8px 0;">Рейтинг РЦТ</h3>
-                <p style="font-size:13.5px; color:var(--text-sub);">Показываем, как региональные платформы и перевод услуг в электронный вид поднимают субъект в зеленую зону федерального мониторинга.</p>
+                <span style="font-size:11px; font-weight:700; color:var(--rt-purple);">ЭТАП 1. РЕЙТИНГ МИНЦИФРЫ</span>
+                <h3 style="font-size:17px; margin:6px 0;">Рейтинг РЦТ</h3>
+                <p style="font-size:13px; color:var(--text-sub);">Показываем, как региональные платформы и перевод услуг в электронный вид поднимают субъект в зеленую зону федерального мониторинга.</p>
               </div>
-              <div style="background:#F8FAFC; padding:10px; border-radius:6px; font-size:12.5px;">10 ключевых отраслей и нацпроект</div>
+              <div style="background:#F8FAFC; padding:8px 10px; border-radius:6px; font-size:12px; margin-top:12px;">10 ключевых отраслей и нацпроект</div>
             </div>
             <div class="col-card">
               <div>
-                <span style="font-size:12px; font-weight:700; color:var(--rt-purple);">ЭТАП 2. УКАЗ ПРЕЗИДЕНТА № 1014</span>
-                <h3 style="font-size:18px; margin:8px 0;">Оценка эффективности</h3>
-                <p style="font-size:13.5px; color:var(--text-sub);">ИТС напрямую снижает смертность на дорогах, видеонаблюдение закрывает безопасность, а умный свет повышает индекс городской среды.</p>
+                <span style="font-size:11px; font-weight:700; color:var(--rt-purple);">ЭТАП 2. УКАЗ ПРЕЗИДЕНТА № 1014</span>
+                <h3 style="font-size:17px; margin:6px 0;">Оценка эффективности</h3>
+                <p style="font-size:13px; color:var(--text-sub);">ИТС снижает смертность на дорогах, видеонаблюдение закрывает безопасность, а умный свет повышает индекс качества городской среды.</p>
               </div>
-              <div style="background:#F8FAFC; padding:10px; border-radius:6px; font-size:12.5px;">Личные показатели губернатора</div>
+              <div style="background:#F8FAFC; padding:8px 10px; border-radius:6px; font-size:12px; margin-top:12px;">Личные показатели губернатора</div>
             </div>
             <div class="col-card" style="border:2px solid var(--accent-green); background:#F8FFF9;">
               <div>
-                <span style="font-size:12px; font-weight:700; color:var(--accent-green);">ЭТАП 3. РЕЗУЛЬТАТ</span>
-                <h3 style="font-size:18px; margin:8px 0;">Запись в протокол</h3>
-                <p style="font-size:13.5px; color:var(--text-sub);">Директор филиала идет с проектом конкретного поручения министерствам, где заранее прописаны сроки, финансирование и ответственность.</p>
+                <span style="font-size:11px; font-weight:700; color:var(--accent-green);">ЭТАП 3. РЕЗУЛЬТАТ</span>
+                <h3 style="font-size:17px; margin:6px 0;">Запись в протокол</h3>
+                <p style="font-size:13px; color:var(--text-sub);">Директор филиала идет с проектом конкретного поручения министерствам, где заранее прописаны сроки, финансирование и ответственность.</p>
               </div>
-              <div style="background:#E8F8ED; color:#166534; font-weight:600; padding:10px; border-radius:6px; font-size:12.5px;">Официальное поручение в работу</div>
+              <div style="background:#E8F8ED; color:#166534; font-weight:600; padding:8px 10px; border-radius:6px; font-size:12px; margin-top:12px;">Официальное поручение в работу</div>
             </div>
           </div>
         `
@@ -768,34 +864,34 @@
             <div class="prod-card">
               <div>
                 <span style="font-size:11px; font-weight:700; color:var(--rt-orange); text-transform:uppercase;">ТРАНСПОРТ</span>
-                <h3 style="font-size:17px; margin:4px 0 8px;">Интеллектуальные транспортные системы (ИТС)</h3>
+                <h3 style="font-size:16px; margin:4px 0 6px;">Интеллектуальные транспортные системы (ИТС)</h3>
                 <p style="font-size:13px; color:var(--text-sub);">Крупные федеральные трансферты, весомый разовый объем выручки и статус ключевого интегратора субъекта.</p>
               </div>
-              <div style="font-size:12px; color:var(--text-muted); font-weight:600;">Федеральный бюджет • Крупный разовый чек</div>
+              <div style="font-size:12px; color:var(--text-muted); font-weight:600; margin-top:10px;">Федеральный бюджет • Крупный разовый чек</div>
             </div>
             <div class="prod-card">
               <div>
                 <span style="font-size:11px; font-weight:700; color:var(--rt-orange); text-transform:uppercase;">БЕЗОПАСНОСТЬ</span>
-                <h3 style="font-size:17px; margin:4px 0 8px;">Городское и региональное видеонаблюдение</h3>
-                <p style="font-size:13px; color:var(--text-sub);">Длительный сервисный контракт, стабильные регулярные платежи и надежная база для допродажи модулей аналитики.</p>
+                <h3 style="font-size:16px; margin:4px 0 6px;">Городское и региональное видеонаблюдение</h3>
+                <p style="font-size:13px; color:var(--text-sub);">Длительный сервисный контракт, стабильные регулярные платежи и надежная база для допродажи аналитики.</p>
               </div>
-              <div style="font-size:12px; color:var(--text-muted); font-weight:600;">Высокий LTV • Защита от оттока</div>
+              <div style="font-size:12px; color:var(--text-muted); font-weight:600; margin-top:10px;">Высокий LTV • Защита от оттока</div>
             </div>
             <div class="prod-card">
               <div>
                 <span style="font-size:11px; font-weight:700; color:var(--rt-orange); text-transform:uppercase;">ИНВЕСТИЦИИ</span>
-                <h3 style="font-size:17px; margin:4px 0 8px;">Энергосервисные контракты (умный свет)</h3>
-                <p style="font-size:13px; color:var(--text-sub);">Модернизация за счет инвестиций компании с возвратом из доказанной экономии казны. Не требует трат бюджета субъекта сейчас.</p>
+                <h3 style="font-size:16px; margin:4px 0 6px;">Энергосервисные контракты (умный свет)</h3>
+                <p style="font-size:13px; color:var(--text-sub);">Модернизация за счет инвестиций компании с возвратом из доказанной экономии казны. Без нагрузки на бюджет сейчас.</p>
               </div>
-              <div style="font-size:12px; color:var(--text-muted); font-weight:600;">Возврат из экономии • Длинная маржа</div>
+              <div style="font-size:12px; color:var(--text-muted); font-weight:600; margin-top:10px;">Возврат из экономии • Длинная маржа</div>
             </div>
             <div class="prod-card">
               <div>
                 <span style="font-size:11px; font-weight:700; color:var(--rt-orange); text-transform:uppercase;">ГОССЕКТОР</span>
-                <h3 style="font-size:17px; margin:4px 0 8px;">Связь в образовании (519-рп)</h3>
-                <p style="font-size:13px; color:var(--text-sub);">Статус единственного исполнителя на 2026–2027 годы. Базовый доход и плацдарм для допродажи школьного видеонаблюдения и СКУД.</p>
+                <h3 style="font-size:16px; margin:4px 0 6px;">Связь в образовании (519-рп)</h3>
+                <p style="font-size:13px; color:var(--text-sub);">Статус единственного исполнителя на 2026–2027 годы. Базовый гарантированный доход и плацдарм для допродажи школьного видеонаблюдения.</p>
               </div>
-              <div style="font-size:12px; color:var(--text-muted); font-weight:600;">Гарантия 2026–2027 • База допродаж</div>
+              <div style="font-size:12px; color:var(--text-muted); font-weight:600; margin-top:10px;">Гарантия 2026–2027 • База допродаж</div>
             </div>
           </div>
         `
@@ -807,27 +903,27 @@
           <div class="matrix-grid">
             <div class="prod-card">
               <span style="font-size:11px; font-weight:700; color:var(--rt-purple);">БЛОК 1</span>
-              <h3 style="font-size:16px; margin:4px 0;">Польза для первого лица региона</h3>
-              <p style="font-size:13px; color:var(--text-sub);">Позиция в рейтинге РЦТ, снижение аварийности, прямая экономия региональной казны.</p>
-              <div style="background:#F8FAFC; padding:8px; border-radius:4px; font-size:12px; font-style:italic;">«Снижение аварийности на ключевых магистралях на 14%»</div>
+              <h3 style="font-size:15px; margin:4px 0;">Польза для первого лица региона</h3>
+              <p style="font-size:12.5px; color:var(--text-sub);">Позиция в рейтинге РЦТ, снижение аварийности, прямая экономия региональной казны.</p>
+              <div style="background:#F8FAFC; padding:6px 8px; border-radius:4px; font-size:11.5px; font-style:italic; margin-top:8px;">«Снижение аварийности на ключевых дорогах на 14%»</div>
             </div>
             <div class="prod-card">
               <span style="font-size:11px; font-weight:700; color:var(--rt-purple);">БЛОК 2</span>
-              <h3 style="font-size:16px; margin:4px 0;">Экономический эффект для филиала</h3>
-              <p style="font-size:13px; color:var(--text-sub);">Выручка в горизонте 3 лет, вклад в годовой план по цифре, маржинальность OIBDA и источник средств.</p>
-              <div style="background:#F8FAFC; padding:8px; border-radius:4px; font-size:12px; font-style:italic;">«Выручка 240 млн руб., вклад +8%, источник: ЛБО Минтранса»</div>
+              <h3 style="font-size:15px; margin:4px 0;">Экономический эффект для филиала</h3>
+              <p style="font-size:12.5px; color:var(--text-sub);">Выручка в горизонте 3 лет, вклад в годовой план по цифре, маржинальность OIBDA и источник средств.</p>
+              <div style="background:#F8FAFC; padding:6px 8px; border-radius:4px; font-size:11.5px; font-style:italic; margin-top:8px;">«Выручка 240 млн руб., вклад +8%, источник: ЛБО Минтранса»</div>
             </div>
             <div class="prod-card">
               <span style="font-size:11px; font-weight:700; color:var(--rt-purple);">БЛОК 3</span>
-              <h3 style="font-size:16px; margin:4px 0;">Текущий статус и узкие места</h3>
-              <p style="font-size:13px; color:var(--text-sub);">С кем проведены встречи, кто готовит ТЗ, где требуется личный звонок директора филиала.</p>
-              <div style="background:#F8FAFC; padding:8px; border-radius:4px; font-size:12px; font-style:italic;">«ТЗ согласовано, требуется звонок директора вице-губернатору»</div>
+              <h3 style="font-size:15px; margin:4px 0;">Текущий статус и узкие места</h3>
+              <p style="font-size:12.5px; color:var(--text-sub);">С кем проведены встречи, кто готовит ТЗ, где требуется личный звонок директора филиала.</p>
+              <div style="background:#F8FAFC; padding:6px 8px; border-radius:4px; font-size:11.5px; font-style:italic; margin-top:8px;">«ТЗ согласовано, требуется звонок директора вице-губернатору»</div>
             </div>
             <div class="prod-card">
               <span style="font-size:11px; font-weight:700; color:var(--rt-purple);">БЛОК 4</span>
-              <h3 style="font-size:16px; margin:4px 0;">Задача на встречу с губернатором</h3>
-              <p style="font-size:13px; color:var(--text-sub);">Формулировка поручения в итоговый протокол для профильного министерства.</p>
-              <div style="background:#F8FAFC; padding:8px; border-radius:4px; font-size:12px; font-style:italic;">«Минтрансу субъекта утвердить план внедрения ИТС до 15 ноября...»</div>
+              <h3 style="font-size:15px; margin:4px 0;">Задача на встречу с губернатором</h3>
+              <p style="font-size:12.5px; color:var(--text-sub);">Формулировка поручения в итоговый протокол для профильного министерства.</p>
+              <div style="background:#F8FAFC; padding:6px 8px; border-radius:4px; font-size:11.5px; font-style:italic; margin-top:8px;">«Минтрансу субъекта утвердить план внедрения ИТС до 15 ноября...»</div>
             </div>
           </div>
         `
@@ -837,9 +933,9 @@
         title: "Упаковка проекта в формат One-Pager",
         render: () => `
           <div class="ws-container">
-            <!-- Панель таймера -->
+            <!-- Таймер (на смартфонах аккуратно сверху) -->
             <div class="timer-panel">
-              <div style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--rt-purple);">Тайминг задания</div>
+              <div style="font-size:11px; font-weight:700; text-transform:uppercase; color:var(--rt-purple);">Тайминг практикума</div>
               <div class="timer-digits" id="timerDisplay">${formatTimer(timerRemaining)}</div>
               <div class="timer-status" id="timerStatusLabel">Ожидает старта</div>
               
@@ -849,43 +945,42 @@
                 <button class="btn" onclick="cmdTimerReset()">Сброс</button>
                 <button class="btn" onclick="cmdTimerAddMin()">+1 мин</button>
               </div>
-              <div id="participantTimerHint" style="${!isSpeaker ? 'display:block;' : 'display:none;'} font-size:12px; color:var(--text-muted);">
+              <div id="participantTimerHint" style="${!isSpeaker ? 'display:block;' : 'display:none;'} font-size:11.5px; color:var(--text-muted);">
                 Управляется спикером (Иван Пичугин)
               </div>
             </div>
 
-            <!-- Правая панель: либо форма участника, либо демонстрация кейса -->
-            <div id="projectedCaseArea" class="projected-case-banner">
-              <!-- Сюда выводится кейс из очереди -->
-            </div>
+            <!-- Правая панель: разбор кейса -->
+            <div id="projectedCaseArea" class="projected-case-banner"></div>
 
+            <!-- Форма участника: плавно листается на смартфоне вниз -->
             <div class="form-panel" id="normalFormArea">
-              <div style="display:flex; justify-content:space-between; align-items:center;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
                 <span style="font-size:13px; font-weight:700; color:var(--rt-purple);">ВАШ ПРОЕКТ ИЗ ВОРОНКИ</span>
-                <span style="font-size:12px; color:var(--text-muted);">Заполните 4 пункта</span>
+                <span style="font-size:11px; color:var(--text-muted);">4 пункта</span>
               </div>
               <div class="form-row">
-                <label class="form-label">Ваше имя и филиал *</label>
+                <label class="form-label">Ваше имя и регион / филиал *</label>
                 <input class="form-input" id="inpAuthor" placeholder="Например: Сергей, Самарский филиал">
               </div>
               <div class="form-row">
-                <label class="form-label">Название проекта</label>
-                <input class="form-input" id="inpProject" placeholder="Например: Модернизация уличного освещения">
+                <label class="form-label">1. Название проекта</label>
+                <input class="form-input" id="inpProject" placeholder="Например: Модернизация освещения (энергосервис)">
               </div>
               <div class="form-row">
-                <label class="form-label">Показатель губернатора (Указ № 1014 / РЦТ)</label>
-                <input class="form-input" id="inpKpi" placeholder="Какую позицию закрывает: качество городской среды, аварийность">
+                <label class="form-label">2. Показатель губернатора (Указ № 1014 / РЦТ)</label>
+                <input class="form-input" id="inpKpi" placeholder="Какую позицию закрываем: индекс качества городской среды">
               </div>
               <div class="form-row">
-                <label class="form-label">Экономика для филиала (выручка, маржа OIBDA)</label>
+                <label class="form-label">3. Экономика филиала (выручка, маржа OIBDA)</label>
                 <input class="form-input" id="inpEconomy" placeholder="Выручка 140 млн руб., OIBDA 38%, возврат из экономии">
               </div>
               <div class="form-row">
-                <label class="form-label">Поручение в протокол встречи</label>
+                <label class="form-label">4. Поручение в протокол встречи</label>
                 <textarea class="form-textarea" id="inpProtocol" placeholder="Поручить МинЖКХ региона провести оценку энергоэффективности до..."></textarea>
               </div>
               <div style="display:flex; gap:10px; margin-top:6px;">
-                <button class="btn btn-orange" style="flex:1;" onclick="submitCaseToSpeaker()">🚀 Отправить на экран спикера</button>
+                <button class="btn btn-orange" style="flex:1; padding:12px;" onclick="submitCaseToSpeaker()">🚀 Отправить на экран спикера</button>
               </div>
             </div>
           </div>
@@ -895,29 +990,29 @@
         tag: "Внутренний диалог",
         title: "Как мы продаем проект директору филиала",
         render: () => `
-          <div class="three-cols" style="grid-template-columns:1fr 1fr; gap:20px; height:auto; margin-bottom:16px;">
+          <div class="three-cols" style="grid-template-columns:1fr 1fr; gap:16px; margin-bottom:14px;">
             <div class="col-card">
               <div>
-                <span style="font-size:12px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">ПОЗИЦИЯ ПРОСИТЕЛЯ</span>
-                <div style="background:#F1F5F9; border-left:3px solid #94A3B8; padding:12px; font-size:13.5px; font-style:italic; margin:10px 0;">
+                <span style="font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase;">ПОЗИЦИЯ ПРОСИТЕЛЯ</span>
+                <div style="background:#F1F5F9; border-left:3px solid #94A3B8; padding:10px 12px; font-size:13px; font-style:italic; margin:8px 0;">
                   «С госзаказчиками тяжело работать, не хватает штата, согласуйте дополнительные ставки и бюджет на участие».
                 </div>
-                <p style="font-size:13px; color:var(--text-sub);">• Рост постоянных операционных затрат<br>• Риск кассового разрыва и заморозки средств<br>• Риски санкций по 44-ФЗ и 223-ФЗ</p>
+                <p style="font-size:12.5px; color:var(--text-sub); line-height:1.45;">• Рост постоянных операционных затрат<br>• Риск кассового разрыва и заморозки средств<br>• Риски санкций по 44-ФЗ и 223-ФЗ</p>
               </div>
-              <div style="font-size:12px; color:var(--text-muted); border-top:1px solid var(--border-card); padding-top:10px;">Реакция: рост барьеров, сомнения и отказ</div>
+              <div style="font-size:11.5px; color:var(--text-muted); border-top:1px solid var(--border-card); padding-top:8px; margin-top:8px;">Реакция: сомнения, рост барьеров и отказ</div>
             </div>
             <div class="col-card lead">
               <div>
-                <span style="font-size:12px; font-weight:700; color:var(--rt-purple); text-transform:uppercase;">ПОЗИЦИЯ ПАРТНЕРА</span>
-                <div style="background:var(--accent-soft-purple); border-left:3px solid var(--rt-purple); padding:12px; font-size:13.5px; font-weight:500; margin:10px 0;">
+                <span style="font-size:11px; font-weight:700; color:var(--rt-purple); text-transform:uppercase;">ПОЗИЦИЯ ПАРТНЕРА</span>
+                <div style="background:var(--accent-soft-purple); border-left:3px solid var(--rt-purple); padding:10px 12px; font-size:13px; font-weight:500; margin:8px 0;">
                   «В работе надежный портфель из 3 контрактов на 3 года. Они принесут +Х млн выручки и закроют треть твоего плана по цифре. Мне нужны переговоры первого лица, исполнение мы забираем на себя».
                 </div>
-                <p style="font-size:13px; color:var(--text-sub);">• Прямой вклад в личные KPI директора<br>• Защищенная маржинальность OIBDA<br>• Полный контроль технологических рисков</p>
+                <p style="font-size:12.5px; color:var(--text-sub); line-height:1.45;">• Прямой вклад в личные KPI директора<br>• Защищенная маржинальность OIBDA<br>• Полный контроль технологических рисков</p>
               </div>
-              <div style="font-size:12px; color:var(--rt-purple); font-weight:600; border-top:1px solid var(--border-card); padding-top:10px;">Реакция: понимание личной выгоды и включение</div>
+              <div style="font-size:11.5px; color:var(--rt-purple); font-weight:600; border-top:1px solid var(--border-card); padding-top:8px; margin-top:8px;">Реакция: понимание личной выгоды и поддержка</div>
             </div>
           </div>
-          <div style="background:#FFFFFF; border:1px solid var(--border-card); border-radius:var(--radius-sm); padding:16px 20px; font-size:14px; display:flex; align-items:center; gap:12px;">
+          <div style="background:#FFFFFF; border:1px solid var(--border-card); border-radius:var(--radius-sm); padding:14px 18px; font-size:13.5px; display:flex; align-items:center; gap:10px;">
             <span>💡</span>
             <span><strong>Вопрос для самооценки:</strong> вспомните ваш последний разговор с директором — из какой роли вы заходили и что в питче стоит изменить прямо в понедельник?</span>
           </div>
@@ -927,29 +1022,29 @@
         tag: "Управление рисками",
         title: "Как директор принимает решения и чего он ждет",
         render: () => `
-          <div class="three-cols" style="margin-bottom:16px;">
+          <div class="three-cols" style="margin-bottom:14px;">
             <div class="col-card">
-              <span style="font-size:12px; font-weight:700; color:var(--rt-purple);">ФИНАНСЫ</span>
-              <h3 style="font-size:17px; margin:6px 0;">Проработка рисков</h3>
-              <p style="font-size:13px; color:var(--text-sub);">Сквозной расчет финмодели без скрытых затрат, подтвержденные лимиты бюджетных обязательств или защита от кассовых разрывов.</p>
-              <div style="background:#F8FAFC; padding:8px; border-radius:4px; font-size:12px; color:var(--text-muted);">Без «деньги найдем позже»</div>
+              <span style="font-size:11px; font-weight:700; color:var(--rt-purple);">ФИНАНСЫ</span>
+              <h3 style="font-size:16px; margin:4px 0 6px;">Проработка рисков</h3>
+              <p style="font-size:12.5px; color:var(--text-sub);">Сквозной расчет финмодели без скрытых затрат, подтвержденные лимиты бюджетных обязательств или защита от кассовых разрывов.</p>
+              <div style="background:#F8FAFC; padding:6px 8px; border-radius:4px; font-size:11.5px; color:var(--text-muted); margin-top:8px;">Без «деньги найдем позже»</div>
             </div>
             <div class="col-card">
-              <span style="font-size:12px; font-weight:700; color:var(--rt-purple);">ПРОИЗВОДСТВО</span>
-              <h3 style="font-size:17px; margin:6px 0;">Структура исполнения</h3>
-              <p style="font-size:13px; color:var(--text-sub);">Проверенный пул субподрядчиков, контроль поставок оборудования и соблюдение технологических окон сдачи в срок.</p>
-              <div style="background:#F8FAFC; padding:8px; border-radius:4px; font-size:12px; color:var(--text-muted);">Жесткий операционный контроль</div>
+              <span style="font-size:11px; font-weight:700; color:var(--rt-purple);">ПРОИЗВОДСТВО</span>
+              <h3 style="font-size:16px; margin:4px 0 6px;">Структура исполнения</h3>
+              <p style="font-size:12.5px; color:var(--text-sub);">Проверенный пул субподрядчиков, контроль поставок оборудования и соблюдение технологических окон сдачи в срок.</p>
+              <div style="background:#F8FAFC; padding:6px 8px; border-radius:4px; font-size:11.5px; color:var(--text-muted); margin-top:8px;">Жесткий операционный контроль</div>
             </div>
             <div class="col-card">
-              <span style="font-size:12px; font-weight:700; color:var(--rt-purple);">БЕЗОПАСНОСТЬ</span>
-              <h3 style="font-size:17px; margin:6px 0;">Юридическая чистота</h3>
-              <p style="font-size:13px; color:var(--text-sub);">Типовые решения и документация, уже прошедшие проверки ФАС и надзорных органов в других регионах страны.</p>
-              <div style="background:#F8FAFC; padding:8px; border-radius:4px; font-size:12px; color:var(--text-muted);">Нулевой риск предписаний ФАС</div>
+              <span style="font-size:11px; font-weight:700; color:var(--rt-purple);">БЕЗОПАСНОСТЬ</span>
+              <h3 style="font-size:16px; margin:4px 0 6px;">Юридическая чистота</h3>
+              <p style="font-size:12.5px; color:var(--text-sub);">Типовые решения и документация, уже прошедшие проверки ФАС и надзорных органов в других регионах страны.</p>
+              <div style="background:#F8FAFC; padding:6px 8px; border-radius:4px; font-size:11.5px; color:var(--text-muted); margin-top:8px;">Нулевой риск предписаний ФАС</div>
             </div>
           </div>
-          <div style="background:#FFFFFF; border:1px solid var(--border-card); border-radius:var(--radius-md); padding:16px 24px; display:grid; grid-template-columns:1fr 1fr; gap:24px;">
-            <div><strong style="color:var(--rt-purple);">Задача заместителя:</strong> формировать надежную воронку, считать экономику и модерировать каждый этап сделки.</div>
-            <div><strong style="color:var(--text-main);">Роль директора:</strong> подключать административный статус, вести диалог с первыми лицами и защищать проект на уровне субъекта.</div>
+          <div style="background:#FFFFFF; border:1px solid var(--border-card); border-radius:var(--radius-md); padding:14px 20px; display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <div style="font-size:13px;"><strong style="color:var(--rt-purple);">Задача заместителя:</strong> формировать надежную воронку, считать экономику и модерировать каждый этап сделки.</div>
+            <div style="font-size:13px;"><strong style="color:var(--text-main);">Роль директора:</strong> подключать административный статус, вести диалог с первыми лицами и защищать проект на уровне субъекта.</div>
           </div>
         `
       },
@@ -957,28 +1052,28 @@
         tag: "Региональная повестка",
         title: "Внешнее окружение: выводим директора на ключевые площадки",
         render: () => `
-          <div class="three-cols" style="grid-template-columns:1fr 1fr; gap:20px;">
+          <div class="three-cols" style="grid-template-columns:1fr 1fr; gap:16px;">
             <div class="col-card">
-              <h3 style="font-size:18px; margin-bottom:12px;">Институциональные площадки</h3>
-              <ul style="list-style:none; display:flex; flex-direction:column; gap:8px; font-size:13.5px; color:var(--text-sub);">
+              <h3 style="font-size:17px; margin-bottom:10px;">Институциональные площадки</h3>
+              <ul style="list-style:none; display:flex; flex-direction:column; gap:8px; font-size:13px; color:var(--text-sub);">
                 <li>• Общественная палата субъекта РФ и экспертные группы</li>
                 <li>• Наблюдательные советы ведущих региональных вузов</li>
                 <li>• Общественные советы при силовых ведомствах (МВД, МЧС)</li>
                 <li>• Союзы промышленников, предпринимателей и строителей</li>
                 <li>• Ключевые деловые и спортивные форумы субъекта</li>
               </ul>
-              <div style="font-size:12px; color:var(--text-muted); border-top:1px solid var(--border-card); padding-top:12px;">Задача зама: инициировать и готовить участие первого лица</div>
+              <div style="font-size:11.5px; color:var(--text-muted); border-top:1px solid var(--border-card); padding-top:10px; margin-top:10px;">Задача зама: инициировать и готовить участие первого лица</div>
             </div>
             <div class="col-card">
-              <h3 style="font-size:18px; margin-bottom:12px;">Карта стейкхолдеров субъекта</h3>
-              <ul style="list-style:none; display:flex; flex-direction:column; gap:8px; font-size:13.5px; color:var(--text-sub);">
+              <h3 style="font-size:17px; margin-bottom:10px;">Карта стейкхолдеров субъекта</h3>
+              <ul style="list-style:none; display:flex; flex-direction:column; gap:8px; font-size:13px; color:var(--text-sub);">
                 <li>• Губернатор и ключевые замы по внутренней политике и экономике</li>
                 <li>• Профильные министры: цифра, транспорт, образование, медицина, ЖКХ</li>
                 <li>• Мэр регионального центра и главы промышленных городов</li>
                 <li>• Руководство управлений МВД, ФСБ, МЧС и Ростехнадзора</li>
                 <li>• Главы профильных комитетов законодательного собрания</li>
               </ul>
-              <div style="font-size:12px; color:var(--text-muted); border-top:1px solid var(--border-card); padding-top:12px;">Личный контакт директора со всей линейкой ЛПР</div>
+              <div style="font-size:11.5px; color:var(--text-muted); border-top:1px solid var(--border-card); padding-top:10px; margin-top:10px;">Личный контакт директора со всей линейкой ЛПР</div>
             </div>
           </div>
         `
@@ -987,28 +1082,28 @@
         tag: "Итог",
         title: "Формула совместного лидерства в регионе",
         render: () => `
-          <div style="background:#FFFFFF; border:2px solid var(--rt-purple); border-radius:var(--radius-md); padding:24px 32px; display:flex; justify-content:space-around; align-items:center; margin-bottom:20px;">
-            <div style="text-align:center;"><div style="font-size:20px; font-weight:700;">Политический вес</div><div style="font-size:13px; color:var(--text-muted);">директора филиала</div></div>
-            <div style="font-size:28px; font-weight:700; color:var(--rt-purple);">+</div>
-            <div style="text-align:center;"><div style="font-size:20px; font-weight:700;">Управляемый портфель</div><div style="font-size:13px; color:var(--text-muted);">заместителя по цифре</div></div>
-            <div style="font-size:28px; font-weight:700; color:var(--rt-purple);">=</div>
-            <div style="text-align:center;"><div style="font-size:20px; font-weight:700;">Лидерство в регионе</div><div style="font-size:13px; color:var(--text-muted);">выполнение бизнес-плана</div></div>
+          <div style="background:#FFFFFF; border:2px solid var(--rt-purple); border-radius:var(--radius-md); padding:18px 24px; display:flex; justify-content:space-around; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+            <div style="text-align:center;"><div style="font-size:17px; font-weight:700;">Политический вес</div><div style="font-size:12px; color:var(--text-muted);">директора филиала</div></div>
+            <div style="font-size:24px; font-weight:700; color:var(--rt-purple);">+</div>
+            <div style="text-align:center;"><div style="font-size:17px; font-weight:700;">Управляемый портфель</div><div style="font-size:12px; color:var(--text-muted);">заместителя по цифре</div></div>
+            <div style="font-size:24px; font-weight:700; color:var(--rt-purple);">=</div>
+            <div style="text-align:center;"><div style="font-size:17px; font-weight:700;">Лидерство в регионе</div><div style="font-size:12px; color:var(--text-muted);">выполнение бизнес-плана</div></div>
           </div>
           <div class="three-cols">
             <div class="col-card">
-              <div style="font-size:24px; font-weight:700; color:var(--rt-purple); margin-bottom:8px;">01</div>
-              <h4 style="font-size:16px; margin-bottom:6px;">Сценарии вместо проблем</h4>
-              <p style="font-size:13px; color:var(--text-sub);">Приходите к директору не с констатацией сложностей, а с готовыми решениями и расчетом рисков.</p>
+              <div style="font-size:22px; font-weight:700; color:var(--rt-purple); margin-bottom:6px;">01</div>
+              <h4 style="font-size:15px; margin-bottom:4px;">Сценарии вместо проблем</h4>
+              <p style="font-size:12.5px; color:var(--text-sub);">Приходите к директору не с констатацией сложностей, а с готовыми решениями и расчетом рисков.</p>
             </div>
             <div class="col-card">
-              <div style="font-size:24px; font-weight:700; color:var(--rt-purple); margin-bottom:8px;">02</div>
-              <h4 style="font-size:16px; margin-bottom:6px;">Знание региональной казны</h4>
-              <p style="font-size:13px; color:var(--text-sub);">Знайте бюджет и слабые места региона в рейтингах лучше профильного министра.</p>
+              <div style="font-size:22px; font-weight:700; color:var(--rt-purple); margin-bottom:6px;">02</div>
+              <h4 style="font-size:15px; margin-bottom:4px;">Знание региональной казны</h4>
+              <p style="font-size:12.5px; color:var(--text-sub);">Знайте бюджет и слабые места региона в рейтингах лучше профильного министра.</p>
             </div>
             <div class="col-card">
-              <div style="font-size:24px; font-weight:700; color:var(--rt-purple); margin-bottom:8px;">03</div>
-              <h4 style="font-size:16px; margin-bottom:6px;">Победа первого лица</h4>
-              <p style="font-size:13px; color:var(--text-sub);">Помогайте директору филиала становиться главным проводником цифровых побед региона.</p>
+              <div style="font-size:22px; font-weight:700; color:var(--rt-purple); margin-bottom:6px;">03</div>
+              <h4 style="font-size:15px; margin-bottom:4px;">Победа первого лица</h4>
+              <p style="font-size:12.5px; color:var(--text-sub);">Помогайте директору филиала становиться главным проводником цифровых побед региона.</p>
             </div>
           </div>
         `
@@ -1017,32 +1112,32 @@
         tag: "Приложение 1",
         title: "Матрица быстрой проверки проекта перед согласованием",
         render: () => `
-          <div style="background:#FFFFFF; border:1px solid var(--border-card); border-radius:var(--radius-md); overflow:hidden;">
-            <table style="width:100%; border-collapse:collapse; font-size:13.5px;">
+          <div style="background:#FFFFFF; border:1px solid var(--border-card); border-radius:var(--radius-md); overflow-x:auto;">
+            <table style="width:100%; border-collapse:collapse; font-size:12.5px; min-width:600px;">
               <tr style="background:#F8FAFC; text-align:left; border-bottom:1px solid var(--border-card);">
-                <th style="padding:14px 20px;">КРИТЕРИЙ</th>
-                <th style="padding:14px 20px; color:#15803D;">ЗЕЛЕНАЯ ЗОНА: ИДЕМ НА ЗАЩИТУ</th>
-                <th style="padding:14px 20px; color:#B91C1C;">КРАСНАЯ ЗОНА: ДОРАБАТЫВАЕМ ВНУТРИ</th>
+                <th style="padding:12px 16px;">КРИТЕРИЙ</th>
+                <th style="padding:12px 16px; color:#15803D;">ЗЕЛЕНАЯ ЗОНА: ИДЕМ НА ЗАЩИТУ</th>
+                <th style="padding:12px 16px; color:#B91C1C;">КРАСНАЯ ЗОНА: ДОРАБАТЫВАЕМ ВНУТРИ</th>
               </tr>
               <tr style="border-bottom:1px solid var(--border-card);">
-                <td style="padding:14px 20px; font-weight:600;">Финансирование</td>
-                <td style="padding:14px 20px; background:#F0FDF4; color:#15803D;">Подтверждено лимитами ЛБО либо доказанной экономией затрат</td>
-                <td style="padding:14px 20px; background:#FEF2F2; color:#B91C1C;">Средства обещали изыскать при корректировке бюджета во 2 полугодии</td>
+                <td style="padding:12px 16px; font-weight:600;">Финансирование</td>
+                <td style="padding:12px 16px; background:#F0FDF4; color:#15803D;">Подтверждено лимитами ЛБО либо доказанной экономией затрат</td>
+                <td style="padding:12px 16px; background:#FEF2F2; color:#B91C1C;">Средства обещали изыскать при корректировке бюджета во 2 полугодии</td>
               </tr>
               <tr style="border-bottom:1px solid var(--border-card);">
-                <td style="padding:14px 20px; font-weight:600;">Сроки реализации</td>
-                <td style="padding:14px 20px; background:#F0FDF4; color:#15803D;">Технологические окна достаточны для поставки и пусконаладки</td>
-                <td style="padding:14px 20px; background:#FEF2F2; color:#B91C1C;">Сдача 25 декабря при отсутствии утвержденного ТЗ в сентябре</td>
+                <td style="padding:12px 16px; font-weight:600;">Сроки реализации</td>
+                <td style="padding:12px 16px; background:#F0FDF4; color:#15803D;">Технологические окна достаточны для поставки и пусконаладки</td>
+                <td style="padding:12px 16px; background:#FEF2F2; color:#B91C1C;">Сдача 25 декабря при отсутствии утвержденного ТЗ в сентябре</td>
               </tr>
               <tr style="border-bottom:1px solid var(--border-card);">
-                <td style="padding:14px 20px; font-weight:600;">Рентабельность</td>
-                <td style="padding:14px 20px; background:#F0FDF4; color:#15803D;">Проект укладывается в норматив филиала по OIBDA margin</td>
-                <td style="padding:14px 20px; background:#FEF2F2; color:#B91C1C;">Показатели занижены в расчете на будущие допродажи сервисов</td>
+                <td style="padding:12px 16px; font-weight:600;">Рентабельность</td>
+                <td style="padding:12px 16px; background:#F0FDF4; color:#15803D;">Проект укладывается в норматив филиала по OIBDA margin</td>
+                <td style="padding:12px 16px; background:#FEF2F2; color:#B91C1C;">Показатели занижены в расчете на будущие допродажи сервисов</td>
               </tr>
               <tr>
-                <td style="padding:14px 20px; font-weight:600;">Инфраструктура</td>
-                <td style="padding:14px 20px; background:#F0FDF4; color:#15803D;">Максимально задействованы свои оптические сети и мощности ЦОД</td>
-                <td style="padding:14px 20px; background:#FEF2F2; color:#B91C1C;">100% перепродажа стороннего решения без добавленной цены оператора</td>
+                <td style="padding:12px 16px; font-weight:600;">Инфраструктура</td>
+                <td style="padding:12px 16px; background:#F0FDF4; color:#15803D;">Максимально задействованы свои оптические сети и мощности ЦОД</td>
+                <td style="padding:12px 16px; background:#FEF2F2; color:#B91C1C;">100% перепродажа стороннего решения без добавленной цены оператора</td>
               </tr>
             </table>
           </div>
@@ -1055,50 +1150,60 @@
           <div class="three-cols">
             <div class="col-card">
               <div>
-                <span style="font-size:12px; font-weight:700; color:var(--rt-purple);">ЕЖЕНЕДЕЛЬНО • 15 МИН</span>
-                <h3 style="font-size:18px; margin:8px 0;">Оперативный статус</h3>
-                <p style="font-size:13.5px; color:var(--text-sub);">Контроль движения сделок в воронке и оперативные развилки, где требуется звонок или письмо первого лица.</p>
+                <span style="font-size:11px; font-weight:700; color:var(--rt-purple);">ЕЖЕНЕДЕЛЬНО • 15 МИН</span>
+                <h3 style="font-size:17px; margin:6px 0;">Оперативный статус</h3>
+                <p style="font-size:13px; color:var(--text-sub);">Контроль движения сделок в воронке и оперативные развилки, где требуется звонок или письмо первого лица.</p>
               </div>
-              <div style="background:#F8FAFC; padding:10px; border-radius:6px; font-size:12.5px;">Фокус: ТОП-5 контрактов и снятие стоп-факторов</div>
+              <div style="background:#F8FAFC; padding:8px 10px; border-radius:6px; font-size:12px; margin-top:12px;">Фокус: ТОП-5 контрактов и снятие стоп-факторов</div>
             </div>
             <div class="col-card">
               <div>
-                <span style="font-size:12px; font-weight:700; color:var(--rt-purple);">ЕЖЕМЕСЯЧНО • 45 МИН</span>
-                <h3 style="font-size:18px; margin:8px 0;">Финансовый контур</h3>
-                <p style="font-size:13.5px; color:var(--text-sub);">Анализ исполнения P&L по цифровому блоку, закрытие актов, контроль оплат и предотвращение кассовых разрывов.</p>
+                <span style="font-size:11px; font-weight:700; color:var(--rt-purple);">ЕЖЕМЕСЯЧНО • 45 МИН</span>
+                <h3 style="font-size:17px; margin:6px 0;">Финансовый контур</h3>
+                <p style="font-size:13px; color:var(--text-sub);">Анализ исполнения P&L по цифровому блоку, закрытие актов, контроль оплат и предотвращение кассовых разрывов.</p>
               </div>
-              <div style="background:#F8FAFC; padding:10px; border-radius:6px; font-size:12.5px;">Фокус: факт плана и платежная дисциплина</div>
+              <div style="background:#F8FAFC; padding:8px 10px; border-radius:6px; font-size:12px; margin-top:12px;">Фокус: факт плана и платежная дисциплина</div>
             </div>
             <div class="col-card">
               <div>
-                <span style="font-size:12px; font-weight:700; color:var(--rt-purple);">ЕЖЕКВАРТАЛЬНО • 2 ЧАСА</span>
-                <h3 style="font-size:18px; margin:8px 0;">Стратегическая сессия</h3>
-                <p style="font-size:13.5px; color:var(--text-sub);">Синхронизация долгосрочных инициатив с бюджетным циклом региона за полгода до внесения закона о бюджете.</p>
+                <span style="font-size:11px; font-weight:700; color:var(--rt-purple);">ЕЖЕКВАРТАЛЬНО • 2 ЧАСА</span>
+                <h3 style="font-size:17px; margin:6px 0;">Стратегическая сессия</h3>
+                <p style="font-size:13px; color:var(--text-sub);">Синхронизация долгосрочных инициатив с бюджетным циклом региона за полгода до внесения закона о бюджете.</p>
               </div>
-              <div style="background:#F8FAFC; padding:10px; border-radius:6px; font-size:12.5px;">Фокус: закладка проектов в бюджет региона</div>
+              <div style="background:#F8FAFC; padding:8px 10px; border-radius:6px; font-size:12px; margin-top:12px;">Фокус: закладка проектов в бюджет региона</div>
             </div>
           </div>
         `
       }
     ];
 
-    // РЕНДЕР СЛАЙДА
+    // РЕНДЕР СЛАЙДА БЕЗ ДУБЛИРОВАНИЯ ЗАГОЛОВКА НА ТИТУЛЕ
     function renderCurrentSlide() {
       const slide = slidesData[currentSlide];
       const container = document.getElementById('slideFrame');
-      container.innerHTML = `
-        <div class="header-group">
-          <span class="tag">${slide.tag}</span>
-          <h2 class="slide-title">${slide.title}</h2>
-        </div>
-        <div class="slide-content">${slide.render()}</div>
-      `;
+      
+      if (currentSlide === 0) {
+        // На титуле только чистый центрированный контент
+        container.innerHTML = `<div class="slide-content">${slide.render()}</div>`;
+      } else {
+        container.innerHTML = `
+          <div class="header-group">
+            <span class="tag">${slide.tag}</span>
+            <h2 class="slide-title">${slide.title}</h2>
+          </div>
+          <div class="slide-content">${slide.render()}</div>
+        `;
+      }
+
       document.getElementById('slideCounter').textContent = `Слайд ${currentSlide + 1} из ${slidesData.length}`;
 
-      // Если мы на слайде практикума и есть спроецированный кейс — показываем его
       if (currentSlide === 7 && activeProjectedCase) {
         showProjectedCaseOnScreen(activeProjectedCase);
       }
+      
+      // Скроллим наверх при смене слайда на смартфонах
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      container.scrollTop = 0;
     }
 
     // ЛИСТАНИЕ
@@ -1181,7 +1286,7 @@
       if (lbl) lbl.textContent = 'Ожидает старта';
     }
 
-    // ОТПРАВКА КЕЙСА УЧАСТНИКОМ
+    // ОТПРАВКА КЕЙСА
     function submitCaseToSpeaker() {
       const author = document.getElementById('inpAuthor')?.value.trim();
       const project = document.getElementById('inpProject')?.value.trim();
@@ -1190,7 +1295,7 @@
       const protocol = document.getElementById('inpProtocol')?.value.trim();
 
       if (!author) {
-        alert('Пожалуйста, укажите ваше имя и филиал');
+        alert('Пожалуйста, укажите ваше имя и регион / филиал');
         return;
       }
 
@@ -1208,7 +1313,6 @@
       showToast('✅ Кейс успешно отправлен на экран Ивана!');
     }
 
-    // ОТОБРАЖЕНИЕ КЕЙСА НА ЭКРАНЕ
     function showProjectedCaseOnScreen(data) {
       activeProjectedCase = data;
       const banner = document.getElementById('projectedCaseArea');
@@ -1219,26 +1323,26 @@
       if (form) form.style.display = 'none';
 
       banner.innerHTML = `
-        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-card); padding-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-card); padding-bottom:10px;">
           <div>
-            <span style="font-size:11px; font-weight:700; color:var(--rt-purple); text-transform:uppercase;">РАЗБОР КЕЙСА ИЗ ЗАЛА</span>
-            <h3 style="font-size:20px; color:var(--text-main); margin-top:2px;">${data.project}</h3>
-            <div style="font-size:13px; color:var(--rt-orange); font-weight:600;">Автор: ${data.author} (${data.time})</div>
+            <span style="font-size:11px; font-weight:700; color:var(--rt-purple); text-transform:uppercase;">КЕЙС НА ЭКРАНЕ</span>
+            <h3 style="font-size:18px; color:var(--text-main); margin-top:2px;">${data.project}</h3>
+            <div style="font-size:12.5px; color:var(--rt-orange); font-weight:600;">Автор: ${data.author} (${data.time})</div>
           </div>
-          ${isSpeaker ? `<button class="btn" onclick="clearProjectedCase()">✕ Снять с экрана</button>` : ''}
+          ${isSpeaker ? `<button class="btn" onclick="clearProjectedCase()">✕ Снять</button>` : ''}
         </div>
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; flex:1;">
-          <div style="background:#F8FAFC; padding:16px; border-radius:8px;">
-            <div style="font-size:12px; font-weight:700; color:var(--rt-purple);">ПОКАЗАТЕЛЬ ГУБЕРНАТОРА</div>
-            <div style="font-size:14px; margin-top:4px;">${data.kpi}</div>
+        <div style="display:flex; flex-direction:column; gap:10px;">
+          <div style="background:#F8FAFC; padding:12px; border-radius:6px;">
+            <div style="font-size:11px; font-weight:700; color:var(--rt-purple);">ПОКАЗАТЕЛЬ ГУБЕРНАТОРА</div>
+            <div style="font-size:13.5px; margin-top:4px;">${data.kpi}</div>
           </div>
-          <div style="background:#F8FAFC; padding:16px; border-radius:8px;">
-            <div style="font-size:12px; font-weight:700; color:var(--rt-purple);">ЭКОНОМИКА ДЛЯ ФИЛИАЛА</div>
-            <div style="font-size:14px; margin-top:4px;">${data.economy}</div>
+          <div style="background:#F8FAFC; padding:12px; border-radius:6px;">
+            <div style="font-size:11px; font-weight:700; color:var(--rt-purple);">ЭКОНОМИКА ФИЛИАЛА</div>
+            <div style="font-size:13.5px; margin-top:4px;">${data.economy}</div>
           </div>
-          <div style="grid-column: span 2; background:#FAF8FF; border-left:3px solid var(--rt-purple); padding:16px; border-radius:4px;">
-            <div style="font-size:12px; font-weight:700; color:var(--rt-purple);">ПОРУЧЕНИЕ В ПРОТОКОЛ ВСТРЕЧИ</div>
-            <div style="font-size:14.5px; margin-top:4px; font-weight:500;">${data.protocol}</div>
+          <div style="background:#FAF8FF; border-left:3px solid var(--rt-purple); padding:12px; border-radius:4px;">
+            <div style="font-size:11px; font-weight:700; color:var(--rt-purple);">ПОРУЧЕНИЕ В ПРОТОКОЛ</div>
+            <div style="font-size:13.5px; margin-top:4px; font-weight:500;">${data.protocol}</div>
           </div>
         </div>
       `;
@@ -1255,19 +1359,19 @@
       }
     }
 
-    // МОДАЛКА ОЧЕРЕДИ КЕЙСОВ
+    // ОЧЕРЕДЬ
     function openQueueModal() {
       const container = document.getElementById('queueListContainer');
       if (!casesQueue.length) {
-        container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:40px 0;">Очередь пока пуста</div>';
+        container.innerHTML = '<div style="color:var(--text-muted); text-align:center; padding:30px 0;">Очередь пока пуста</div>';
       } else {
         container.innerHTML = casesQueue.map((item, idx) => `
           <div class="queue-item">
             <div>
-              <strong>${item.project}</strong>
-              <div style="font-size:13px; color:var(--text-sub);">${item.author} • ${item.time}</div>
+              <strong style="font-size:14px;">${item.project}</strong>
+              <div style="font-size:12px; color:var(--text-sub);">${item.author} • ${item.time}</div>
             </div>
-            <button class="btn btn-primary" onclick="projectCaseByIndex(${idx})">Вывести на экран</button>
+            <button class="btn btn-primary" onclick="projectCaseByIndex(${idx})">Вывести</button>
           </div>
         `).join('');
       }
@@ -1281,7 +1385,7 @@
     function projectCaseByIndex(idx) {
       const item = casesQueue[idx];
       closeQueueModal();
-      currentSlide = 7; // переходим на слайд практикума
+      currentSlide = 7;
       renderCurrentSlide();
       showProjectedCaseOnScreen(item);
       sendNetworkMessage({ type: 'GOTO_SLIDE', slideIndex: 7 });
@@ -1314,9 +1418,9 @@
     function setSpeakerMode() {
       isSpeaker = true;
       document.getElementById('roleBadge').className = 'status-badge speaker';
-      document.getElementById('roleText').textContent = '🎙️ Спикер: Иван Пичугин';
+      document.getElementById('roleText').textContent = '🎙️ Спикер: Иван';
       document.getElementById('authIcon').textContent = '✓';
-      document.getElementById('authText').textContent = 'Иван (Спикер)';
+      document.getElementById('authText').textContent = 'Иван';
       updateQueueCounter();
       renderCurrentSlide();
       showToast('Добро пожаловать, Иван! Управление презентацией активно.');
@@ -1330,40 +1434,37 @@
     }
 
     // -------------------------------------------------------------
-    // СЕТЕВОЙ ШЛЮЗ (HTTPS SSE / FETCH + LOCAL BROADCAST)
+    // СЕТЕВОЙ ШЛЮЗ С УСТОЙЧИВЫМ ПОДКЛЮЧЕНИЕМ И FALLBACK ДЛЯ КОРП. СЕТИ
     // -------------------------------------------------------------
     const myClientId = 'u_' + Math.random().toString(36).substring(2, 9);
     const localBroadcast = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel(SESSION_ID) : null;
     const handledMsgIds = new Set();
+    let isConnectedOnline = false;
 
     function sendNetworkMessage(payload) {
       payload.sender = myClientId;
       payload.msgId = myClientId + '_' + Date.now() + '_' + Math.random();
 
-      // 1. Локально для вкладок
       if (localBroadcast) {
         localBroadcast.postMessage(payload);
       }
 
-      // 2. В глобальную облачную сеть через защищенный HTTPS (порт 443)
       fetch(`https://ntfy.sh/${SESSION_ID}`, {
         method: 'POST',
         headers: { 'Title': 'RTK_SYNC' },
         body: JSON.stringify(payload)
-      }).catch(err => console.warn('Sync POST notice:', err));
+      }).catch(() => {});
     }
 
     function handleIncomingMessage(msg) {
       if (!msg || msg.sender === myClientId || handledMsgIds.has(msg.msgId)) return;
       handledMsgIds.add(msg.msgId);
 
-      // Синхронизация слайдов (для участников)
       if (msg.type === 'GOTO_SLIDE' && !isSpeaker) {
         currentSlide = msg.slideIndex;
         renderCurrentSlide();
       }
 
-      // Синхронизация таймера
       if (msg.type === 'TIMER_CMD') {
         if (msg.cmd === 'START') {
           timerRemaining = msg.duration;
@@ -1379,7 +1480,6 @@
         }
       }
 
-      // Поступление нового кейса спикеру
       if (msg.type === 'NEW_CASE') {
         casesQueue.push(msg.caseData);
         updateQueueCounter();
@@ -1388,31 +1488,40 @@
         }
       }
 
-      // Спикер проецирует кейс на экран
       if (msg.type === 'PROJECT_CASE' && !isSpeaker) {
         currentSlide = 7;
         renderCurrentSlide();
         showProjectedCaseOnScreen(msg.caseData);
       }
 
-      // Спикер убрал кейс
       if (msg.type === 'CLEAR_CASE' && !isSpeaker) {
         clearProjectedCase();
       }
     }
 
     function initNetwork() {
-      // Локальный канал
       if (localBroadcast) {
         localBroadcast.onmessage = (e) => handleIncomingMessage(e.data);
       }
 
-      // Облачный канал (SSE порт 443)
+      // Таймаут безопасности: если корпоративная сеть блокирует постоянный SSE-стрим,
+      // мы не зависаем в бесконечном «Подключение...»
+      const connectionTimer = setTimeout(() => {
+        if (!isConnectedOnline) {
+          if (!isSpeaker) {
+            document.getElementById('roleText').textContent = '📱 Режим участника';
+          }
+          startPollingFallback();
+        }
+      }, 3500);
+
       try {
         const es = new EventSource(`https://ntfy.sh/${SESSION_ID}/sse`);
         es.onopen = () => {
+          isConnectedOnline = true;
+          clearTimeout(connectionTimer);
           if (!isSpeaker) {
-            document.getElementById('roleText').textContent = '📱 Участник (синхронизация активна)';
+            document.getElementById('roleText').textContent = '📱 В эфире (онлайн)';
           }
         };
         es.onmessage = (e) => {
@@ -1425,18 +1534,42 @@
           } catch(err) {}
         };
         es.onerror = () => {
-          console.warn('SSE reconnecting...');
+          if (!isSpeaker && !isConnectedOnline) {
+            document.getElementById('roleText').textContent = '📱 Режим участника';
+          }
+          startPollingFallback();
         };
       } catch(e) {
-        console.error('SSE init error', e);
+        startPollingFallback();
       }
     }
 
-    // Инициализация при старте
+    // Резервный опрос для строгих сетей
+    let pollingStarted = false;
+    function startPollingFallback() {
+      if (pollingStarted) return;
+      pollingStarted = true;
+      setInterval(() => {
+        fetch(`https://ntfy.sh/${SESSION_ID}/json?poll=1&since=3s`)
+          .then(res => res.text())
+          .then(text => {
+            const lines = text.trim().split('\n');
+            lines.forEach(line => {
+              try {
+                const item = JSON.parse(line);
+                if (item.event === 'message') {
+                  handleIncomingMessage(JSON.parse(item.message));
+                }
+              } catch(e) {}
+            });
+          }).catch(() => {});
+      }, 2500);
+    }
+
+    // Инициализация при старте и свайп-навигация
     window.addEventListener('DOMContentLoaded', () => {
       initNetwork();
 
-      // Проверка параметра ссылки ?pin=1014
       const urlParams = new URLSearchParams(window.location.search);
       if (urlParams.get('pin') === SPEAKER_PIN) {
         setSpeakerMode();
@@ -1444,11 +1577,38 @@
 
       renderCurrentSlide();
 
-      // Клавиатурное листание (для ноутбука)
+      // Клавиатурное листание
       window.addEventListener('keydown', (e) => {
+        if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
         if (e.key === 'ArrowRight' || e.key === ' ') navigateSlide(1);
         if (e.key === 'ArrowLeft') navigateSlide(-1);
       });
+
+      // Сенсорная свайп-навигация для смартфонов
+      let touchStartX = 0;
+      let touchEndX = 0;
+      const frame = document.getElementById('slideFrame');
+
+      frame.addEventListener('touchstart', (e) => {
+        touchStartX = e.changedTouches[0].screenX;
+      }, { passive: true });
+
+      frame.addEventListener('touchend', (e) => {
+        touchEndX = e.changedTouches[0].screenX;
+        handleSwipe();
+      }, { passive: true });
+
+      function handleSwipe() {
+        // Игнорируем свайп внутри формы и полей ввода
+        const activeTag = document.activeElement ? document.activeElement.tagName : '';
+        if (activeTag === 'INPUT' || activeTag === 'TEXTAREA') return;
+
+        const diff = touchEndX - touchStartX;
+        if (Math.abs(diff) > 55) {
+          if (diff < 0) navigateSlide(1);  // Свайп влево -> следующий
+          else navigateSlide(-1);          // Свайп вправо -> предыдущий
+        }
+      }
     });
   </script>
 </body>
