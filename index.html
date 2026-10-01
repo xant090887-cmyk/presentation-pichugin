@@ -6,6 +6,7 @@
   <title>Как говорить с директором филиала на языке P&L — Иван Пичугин</title>
   
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/mqtt@5.3.5/dist/mqtt.min.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
@@ -120,6 +121,12 @@
       <div id="roleBadge" class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-slate-100 text-brand-muted border border-slate-200">
         <span id="roleDot" class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
         <span id="roleLabel">Участник</span>
+      </div>
+
+      <!-- Индикатор онлайн-синхронизации со спикером -->
+      <div id="syncBadge" class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200" title="Статус онлайн-синхронизации">
+        <span id="syncDot" class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+        <span id="syncLabel" class="hidden xs:inline">В эфире</span>
       </div>
 
       <!-- Кнопка живой очереди кейсов (для спикера) -->
@@ -561,7 +568,7 @@
               <span id="timerStatusLabel" class="text-[10px] uppercase font-bold tracking-wider text-brand-muted">Ожидание старта</span>
             </div>
 
-            <div class="flex flex-col gap-1.5">
+            <div id="timerControlsGroup" class="flex flex-col gap-1.5">
               <div class="flex gap-1.5">
                 <button id="timerToggleBtn" onclick="toggleTimer()" class="px-3.5 py-1.5 bg-brand-purple hover:bg-[#4d2dbf] text-white text-xs font-bold rounded-lg transition shadow-sm flex items-center gap-1">
                   <span id="timerToggleIcon">▶</span>
@@ -574,6 +581,10 @@
               <button onclick="addMinute()" class="px-2 py-1 bg-white hover:bg-slate-100 border border-slate-200 text-brand-sub text-[11px] font-semibold rounded-md transition text-center">
                 +1 минута
               </button>
+            </div>
+            <div id="timerSpectatorNotice" class="hidden flex-col items-center justify-center px-2 text-[11px] font-semibold text-brand-muted text-center max-w-[100px]">
+              <span class="text-brand-purple">⏱ В эфире</span>
+              <span class="text-[9px] text-slate-400">Управляет Иван</span>
             </div>
           </div>
         </div>
@@ -1203,7 +1214,11 @@
     <span id="toastMessage">Сообщение</span>
   </div>
 
-  <script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInAnonymously, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, doc, setDoc, onSnapshot, collection, addDoc, getDocs, deleteDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
     // 1. Контент заметок спикера (Иван Пичугин)
     const speakerNotes = [
       {
@@ -1267,11 +1282,186 @@
     let currentSlide = 1;
     const totalSlides = 14;
 
-    // СИСТЕМА АВТОРИЗАЦИИ СПИКЕРА
     const SPEAKER_PIN = "1014"; // Символичный PIN (Указ № 1014)
     let isSpeakerAuthorized = false;
 
-    // Проверка URL параметров и сессии
+    // 2. ДВИЖОК РЕАЛЬНОГО ВРЕМЕНИ И СИНХРОНИЗАЦИИ (FIREBASE + MQTT FALLBACK)
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'rtk-pnl-pres-2026';
+    let db = null;
+    let auth = null;
+    let currentUser = null;
+    let mqttClient = null;
+    const MQTT_TOPIC = "rtk/pnl_pres_sync_channel_v1";
+
+    // Инициализация соединения
+    async function initRealtimeEngine() {
+      // 1) Попытка инициализации Firestore при наличии окружения
+      if (typeof __firebase_config !== 'undefined') {
+        try {
+          const firebaseConfig = JSON.parse(__firebase_config);
+          const app = initializeApp(firebaseConfig);
+          auth = getAuth(app);
+          db = getFirestore(app);
+
+          if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+            currentUser = (await signInWithCustomToken(auth, __initial_auth_token)).user;
+          } else {
+            currentUser = (await signInAnonymously(auth)).user;
+          }
+
+          if (currentUser) {
+            setupFirestoreListeners();
+          }
+        } catch (err) {
+          console.debug('Firestore init bypassed, using MQTT fallback', err);
+        }
+      }
+
+      // 2) Инициализация MQTT шлюза (гарантирует синхронизацию на GitHub Pages)
+      try {
+        if (typeof mqtt !== 'undefined') {
+          mqttClient = mqtt.connect('wss://broker.emqx.io:8084/mqtt', {
+            clientId: 'client_' + Math.random().toString(16).substring(2, 10),
+            keepalive: 60,
+            clean: true
+          });
+
+          mqttClient.on('connect', () => {
+            mqttClient.subscribe(MQTT_TOPIC, (err) => {
+              if (!err) {
+                updateSyncStatus(true);
+              }
+            });
+          });
+
+          mqttClient.on('message', (topic, message) => {
+            if (topic === MQTT_TOPIC) {
+              try {
+                const packet = JSON.parse(message.toString());
+                handleIncomingSync(packet);
+              } catch (e) {
+                console.debug('Malformed packet', e);
+              }
+            }
+          });
+
+          mqttClient.on('error', () => {
+            updateSyncStatus(false);
+          });
+        }
+      } catch (e) {
+        console.debug('MQTT client initialization fallback', e);
+      }
+    }
+
+    function setupFirestoreListeners() {
+      if (!currentUser || !db) return;
+
+      // Сессионный документ слайда и таймера (Strict Path: Rule 1)
+      const sessionDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'presentation_session', 'active_state');
+      onSnapshot(sessionDocRef, (snap) => {
+        if (snap.exists()) {
+          const data = snap.data();
+          handleIncomingSync(data);
+        }
+      }, (err) => console.debug('Session state error', err));
+
+      // Коллекция кейсов (Strict Path: Rule 1, No complex query: Rule 2)
+      const casesColRef = collection(db, 'artifacts', appId, 'public', 'data', 'cases');
+      onSnapshot(casesColRef, (snap) => {
+        const list = [];
+        snap.forEach(d => list.push({ id: d.id, ...d.data() }));
+        // Сортировка в JS-памяти
+        list.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+        submittedCases = list;
+        updateQueueBadge();
+        renderQueueList();
+      }, (err) => console.debug('Cases sync error', err));
+    }
+
+    function updateSyncStatus(isOnline) {
+      const dot = document.getElementById('syncDot');
+      const label = document.getElementById('syncLabel');
+      if (dot && label) {
+        if (isOnline) {
+          dot.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
+          label.textContent = isSpeakerAuthorized ? 'Эфир (Спикер)' : 'В эфире';
+        } else {
+          dot.className = 'w-2 h-2 rounded-full bg-amber-400';
+          label.textContent = 'Локально';
+        }
+      }
+    }
+
+    function broadcastSync(packet) {
+      packet.senderId = currentUser ? currentUser.uid : (sessionStorage.getItem('rtk_client_id') || 'guest');
+      packet.sentAt = Date.now();
+
+      // Отправка в MQTT для всех устройств на GitHub Pages
+      if (mqttClient && mqttClient.connected) {
+        mqttClient.publish(MQTT_TOPIC, JSON.stringify(packet));
+      }
+
+      // Отправка в Firestore если подключен
+      if (db && currentUser) {
+        if (packet.type === 'SLIDE_CHANGE' || packet.type === 'TIMER_SYNC' || packet.type === 'SPOTLIGHT_CHANGE' || packet.type === 'CLEAR_SPOTLIGHT') {
+          const sessionDocRef = doc(db, 'artifacts', appId, 'public', 'data', 'presentation_session', 'active_state');
+          setDoc(sessionDocRef, packet, { merge: true }).catch(() => {});
+        }
+      }
+    }
+
+    function handleIncomingSync(packet) {
+      if (!packet || !packet.type) return;
+
+      // 1. Смена слайда от спикера
+      if (packet.type === 'SLIDE_CHANGE') {
+        if (!isSpeakerAuthorized && packet.slide) {
+          showSlide(packet.slide, false);
+          showToast(`Спикер переключил на слайд ${packet.slide}`);
+        }
+      }
+
+      // 2. Синхронизация таймера
+      else if (packet.type === 'TIMER_SYNC') {
+        handleRemoteTimerSync(packet);
+      }
+
+      // 3. Новый кейс в очередь
+      else if (packet.type === 'NEW_CASE') {
+        if (packet.caseData) {
+          handleIncomingCase(packet.caseData);
+          if (isSpeakerAuthorized) {
+            showToast(`Новый кейс от: ${packet.caseData.author}!`);
+          }
+        }
+      }
+
+      // 4. Вывод кейса на экран
+      else if (packet.type === 'SPOTLIGHT_CHANGE') {
+        if (packet.caseData) {
+          renderSpotlight(packet.caseData);
+          if (!isSpeakerAuthorized) {
+            showSlide(8, false);
+            showToast(`Кейс «${packet.caseData.project}» выведен на экран`);
+          }
+        }
+      }
+
+      // 5. Очистка экрана
+      else if (packet.type === 'CLEAR_SPOTLIGHT') {
+        clearStageSpotlightUI();
+      }
+
+      // 6. Очистка всех кейсов
+      else if (packet.type === 'CLEAR_ALL') {
+        submittedCases = [];
+        updateQueueBadge();
+        renderQueueList();
+        clearStageSpotlightUI();
+      }
+    }
+
     function checkSpeakerAuth() {
       const urlParams = new URLSearchParams(window.location.search);
       const urlPin = urlParams.get('pin');
@@ -1287,7 +1477,6 @@
       isSpeakerAuthorized = true;
       sessionStorage.setItem('rtk_speaker_auth', 'true');
 
-      // Обновляем бейдж роли
       const roleDot = document.getElementById('roleDot');
       const roleLabel = document.getElementById('roleLabel');
       if (roleDot && roleLabel) {
@@ -1296,12 +1485,17 @@
         roleLabel.classList.add('text-brand-purple', 'font-bold');
       }
 
-      // Показываем кнопку очереди кейсов для спикера
       const queueBtn = document.getElementById('liveQueueBtn');
-      if (queueBtn) queueBtn.classList.remove('hidden');
-      if (queueBtn) queueBtn.classList.add('flex');
+      if (queueBtn) {
+        queueBtn.classList.remove('hidden');
+        queueBtn.classList.add('flex');
+      }
 
-      // Обновляем кнопку заметок
+      const timerControls = document.getElementById('timerControlsGroup');
+      const timerNotice = document.getElementById('timerSpectatorNotice');
+      if (timerControls) timerControls.classList.remove('hidden');
+      if (timerNotice) timerNotice.classList.add('hidden');
+
       const notesBtn = document.getElementById('notesToggleBtn');
       const notesBtnText = document.getElementById('notesBtnText');
       const lockIcon = document.getElementById('notesLockIcon');
@@ -1311,8 +1505,9 @@
         lockIcon.outerHTML = '<svg id="notesLockIcon" class="w-3.5 h-3.5 text-brand-purple" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"/></svg>';
       }
 
+      updateSyncStatus(true);
       if (showToastMsg) {
-        showToast('Режим спикера активирован. Добро пожаловать, Иван!');
+        showToast('Режим спикера активирован. Синхронизация зала включена!');
       }
     }
 
@@ -1328,23 +1523,412 @@
         roleLabel.classList.remove('text-brand-purple', 'font-bold');
       }
 
-      // Скрываем кнопку очереди кейсов для зрителя
       const queueBtn = document.getElementById('liveQueueBtn');
       if (queueBtn) {
         queueBtn.classList.add('hidden');
         queueBtn.classList.remove('flex');
       }
 
+      const timerControls = document.getElementById('timerControlsGroup');
+      const timerNotice = document.getElementById('timerSpectatorNotice');
+      if (timerControls) timerControls.classList.add('hidden');
+      if (timerNotice) timerNotice.classList.remove('hidden');
+
       const notesBtnText = document.getElementById('notesBtnText');
       const notesBtn = document.getElementById('notesToggleBtn');
       if (notesBtnText) notesBtnText.textContent = 'Шпаргалка';
       if (notesBtn) notesBtn.classList.remove('border-brand-purple', 'text-brand-purple');
 
-      // Закрываем панель заметок если была открыта
       const drawer = document.getElementById('notesDrawer');
       if (drawer && !drawer.classList.contains('translate-x-full')) {
         drawer.classList.add('translate-x-full');
       }
+      updateSyncStatus(true);
+    }
+
+    function showSlide(index, shouldBroadcast = true) {
+      if (index < 1) index = 1;
+      if (index > totalSlides) index = totalSlides;
+
+      currentSlide = index;
+
+      document.querySelectorAll('.slide-view').forEach((el, idx) => {
+        if (idx + 1 === currentSlide) {
+          el.classList.add('active');
+        } else {
+          el.classList.remove('active');
+        }
+      });
+
+      const padCurrent = currentSlide < 10 ? `0${currentSlide}` : currentSlide;
+      const padTotal = totalSlides < 10 ? `0${totalSlides}` : totalSlides;
+      document.getElementById('slideIndicator').textContent = `${padCurrent} / ${padTotal}`;
+
+      const progressPercent = (currentSlide / totalSlides) * 100;
+      document.getElementById('progressBar').style.width = `${progressPercent}%`;
+
+      updateNotesView();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+
+      // Если переключает спикер — транслируем всем участникам
+      if (isSpeakerAuthorized && shouldBroadcast) {
+        broadcastSync({
+          type: 'SLIDE_CHANGE',
+          slide: currentSlide
+        });
+      }
+    }
+
+    function nextSlide() {
+      if (currentSlide < totalSlides) {
+        showSlide(currentSlide + 1, true);
+      }
+    }
+
+    function prevSlide() {
+      if (currentSlide > 1) {
+        showSlide(currentSlide - 1, true);
+      }
+    }
+
+    let timerTotalSeconds = 5 * 60;
+    let timerRemaining = timerTotalSeconds;
+    let timerInterval = null;
+    let isTimerRunning = false;
+
+    function playChime(freq1 = 587.33, freq2 = 880.00) {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const now = audioCtx.currentTime;
+
+        const osc1 = audioCtx.createOscillator();
+        const osc2 = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc1.type = 'sine';
+        osc1.frequency.setValueAtTime(freq1, now);
+        osc2.type = 'triangle';
+        osc2.frequency.setValueAtTime(freq2, now);
+
+        gain.gain.setValueAtTime(0, now);
+        gain.gain.linearRampToValueAtTime(0.3, now + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 1.6);
+
+        osc1.connect(gain);
+        osc2.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc1.start(now);
+        osc2.start(now);
+        osc1.stop(now + 1.6);
+        osc2.stop(now + 1.6);
+      } catch (e) {
+        console.debug('Audio prevented', e);
+      }
+    }
+
+    function updateTimerUI() {
+      const mins = Math.floor(timerRemaining / 60);
+      const secs = timerRemaining % 60;
+      const str = `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
+      document.getElementById('timerDigits').textContent = str;
+
+      const container = document.getElementById('timerDisplayContainer');
+      if (isTimerRunning) {
+        container.classList.add('timer-running');
+      } else {
+        container.classList.remove('timer-running');
+      }
+    }
+
+    function toggleTimer() {
+      if (!isSpeakerAuthorized) return;
+
+      if (isTimerRunning) {
+        clearInterval(timerInterval);
+        isTimerRunning = false;
+        document.getElementById('timerToggleIcon').textContent = '▶';
+        document.getElementById('timerToggleText').textContent = 'Продолжить';
+        document.getElementById('timerStatusLabel').textContent = 'На паузе';
+        updateTimerUI();
+
+        broadcastSync({
+          type: 'TIMER_SYNC',
+          isRunning: false,
+          remaining: timerRemaining
+        });
+      } else {
+        playChime(659.25, 987.77);
+        isTimerRunning = true;
+        document.getElementById('timerToggleIcon').textContent = '⏸';
+        document.getElementById('timerToggleText').textContent = 'Пауза';
+        document.getElementById('timerStatusLabel').textContent = 'Идет работа';
+
+        runTimerCountdown();
+
+        broadcastSync({
+          type: 'TIMER_SYNC',
+          isRunning: true,
+          remaining: timerRemaining
+        });
+      }
+    }
+
+    function runTimerCountdown() {
+      clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        if (timerRemaining > 0) {
+          timerRemaining--;
+          updateTimerUI();
+
+          if (timerRemaining === 60) {
+            playChime(523.25, 783.99);
+            showToast('Осталась 1 минута практикума!');
+          }
+        } else {
+          clearInterval(timerInterval);
+          isTimerRunning = false;
+          if (document.getElementById('timerToggleIcon')) {
+            document.getElementById('timerToggleIcon').textContent = '▶';
+            document.getElementById('timerToggleText').textContent = 'Старт';
+            document.getElementById('timerStatusLabel').textContent = 'Время вышло!';
+          }
+          updateTimerUI();
+          playChime(440.00, 659.25);
+          showToast('Время практикума завершено!');
+        }
+      }, 1000);
+      updateTimerUI();
+    }
+
+    function resetTimer() {
+      if (!isSpeakerAuthorized) return;
+      clearInterval(timerInterval);
+      isTimerRunning = false;
+      timerRemaining = 5 * 60;
+      document.getElementById('timerToggleIcon').textContent = '▶';
+      document.getElementById('timerToggleText').textContent = 'Старт';
+      document.getElementById('timerStatusLabel').textContent = 'Ожидание старта';
+      updateTimerUI();
+
+      broadcastSync({
+        type: 'TIMER_SYNC',
+        isRunning: false,
+        remaining: timerRemaining,
+        isReset: true
+      });
+    }
+
+    function addMinute() {
+      if (!isSpeakerAuthorized) return;
+      timerRemaining += 60;
+      updateTimerUI();
+      showToast('Добавлена 1 минута');
+
+      broadcastSync({
+        type: 'TIMER_SYNC',
+        isRunning: isTimerRunning,
+        remaining: timerRemaining
+      });
+    }
+
+    function handleRemoteTimerSync(packet) {
+      timerRemaining = packet.remaining;
+      isTimerRunning = packet.isRunning;
+
+      if (isTimerRunning) {
+        document.getElementById('timerStatusLabel').textContent = 'Идет работа (спикер)';
+        runTimerCountdown();
+      } else {
+        clearInterval(timerInterval);
+        document.getElementById('timerStatusLabel').textContent = packet.isReset ? 'Ожидание старта' : 'На паузе';
+        updateTimerUI();
+      }
+    }
+
+    let submittedCases = [];
+    let currentSpotlightCase = null;
+
+    async function submitCaseToStage() {
+      const author = document.getElementById('wbAuthorName').value.trim() || 'Участник из зала';
+      const proj = document.getElementById('wbProjectName').value.trim();
+      const kpi = document.getElementById('wbGovKpi').value.trim();
+      const econ = document.getElementById('wbEconomics').value.trim();
+      const prot = document.getElementById('wbProtocolText').value.trim();
+
+      if (!proj && !kpi && !prot) {
+        showToast('Заполните хотя бы проект или формулировку поручения');
+        return;
+      }
+
+      const newCase = {
+        id: 'case_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+        author: author,
+        project: proj || 'Проект цифровизации',
+        kpi: kpi || 'Показатель Указа № 1014 / РЦТ',
+        economics: econ || 'Согласовано в рамках нормативов P&L',
+        protocol: prot || 'Проект поручения в итоговый протокол встречи',
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        timestamp: Date.now()
+      };
+
+      // 1. Добавление локально
+      handleIncomingCase(newCase);
+
+      // 2. Отправка в Firestore (если подключен)
+      if (db && currentUser) {
+        try {
+          const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'cases');
+          await addDoc(colRef, newCase);
+        } catch (e) {
+          console.debug('Firestore add error', e);
+        }
+      }
+
+      // 3. Отправка через прямой сокет-шлюз
+      broadcastSync({
+        type: 'NEW_CASE',
+        caseData: newCase
+      });
+
+      showToast('🚀 Кейс отправлен на экран спикера!');
+    }
+
+    function handleIncomingCase(c) {
+      if (!submittedCases.some(item => item.id === c.id)) {
+        submittedCases.unshift(c);
+        updateQueueBadge();
+        renderQueueList();
+      }
+    }
+
+    function updateQueueBadge() {
+      const badge = document.getElementById('queueCount');
+      if (badge) badge.textContent = submittedCases.length;
+    }
+
+    function setSpotlightCase(caseId) {
+      const found = submittedCases.find(c => c.id === caseId);
+      if (!found) return;
+
+      currentSpotlightCase = found;
+      renderSpotlight(found);
+
+      broadcastSync({
+        type: 'SPOTLIGHT_CHANGE',
+        caseData: found
+      });
+
+      const modal = document.getElementById('queueModal');
+      if (modal && !modal.classList.contains('hidden')) {
+        toggleQueueModal();
+      }
+      showSlide(8, true);
+      showToast(`Кейс «${found.project}» выведен на экран`);
+    }
+
+    function renderSpotlight(data) {
+      if (!data) return;
+      currentSpotlightCase = data;
+
+      const display = document.getElementById('spotlightDisplay');
+      document.getElementById('spotlightProjectTitle').textContent = data.project;
+      document.getElementById('spotlightAuthorBadge').textContent = `Автор: ${data.author}`;
+      document.getElementById('spotlightGovKpi').textContent = data.kpi;
+      document.getElementById('spotlightEconomics').textContent = data.economics;
+      document.getElementById('spotlightProtocol').textContent = `«${data.protocol}»`;
+
+      if (display) display.classList.remove('hidden');
+    }
+
+    function clearStageSpotlight() {
+      clearStageSpotlightUI();
+      broadcastSync({ type: 'CLEAR_SPOTLIGHT' });
+      showToast('Экран очищен');
+    }
+
+    function clearStageSpotlightUI() {
+      currentSpotlightCase = null;
+      const display = document.getElementById('spotlightDisplay');
+      if (display) display.classList.add('hidden');
+    }
+
+    function clearAllCases() {
+      submittedCases = [];
+      updateQueueBadge();
+      renderQueueList();
+      clearStageSpotlight();
+      broadcastSync({ type: 'CLEAR_ALL' });
+      showToast('Очередь полностью очищена');
+    }
+
+    function toggleQueueModal() {
+      const modal = document.getElementById('queueModal');
+      modal.classList.toggle('hidden');
+      modal.classList.toggle('flex');
+      renderQueueList();
+    }
+
+    function renderQueueList() {
+      const container = document.getElementById('queueListContainer');
+      if (!container) return;
+
+      if (submittedCases.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8 text-brand-muted text-xs">
+            Очередь пока пуста. Когда участники отправят свой One-Pager, проекты появятся здесь в реальном времени.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = '';
+      submittedCases.forEach((item) => {
+        const div = document.createElement('div');
+        div.className = 'p-4 rounded-xl border border-brand-border bg-slate-50 hover:bg-white hover:border-brand-purple transition flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3';
+        div.innerHTML = `
+          <div class="flex-1">
+            <div class="flex items-center gap-2 mb-1">
+              <span class="text-xs font-bold text-brand-purple">${item.author}</span>
+              <span class="text-[10px] text-brand-muted">• ${item.time}</span>
+            </div>
+            <div class="text-sm font-bold text-brand-dark">${item.project}</div>
+            <div class="text-xs text-brand-sub mt-0.5 line-clamp-1">${item.protocol}</div>
+          </div>
+          <div class="flex items-center gap-2 shrink-0">
+            <button onclick="window.setSpotlightCase('${item.id}')" class="px-3 py-1.5 bg-brand-purple hover:bg-[#4d2dbf] text-white text-xs font-bold rounded-lg transition shadow-sm">
+              Вывести на экран
+            </button>
+            <button onclick="window.removeCase('${item.id}')" class="p-1.5 text-slate-400 hover:text-red-500 rounded-lg">
+              ✕
+            </button>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function removeCase(caseId) {
+      submittedCases = submittedCases.filter(c => c.id !== caseId);
+      updateQueueBadge();
+      renderQueueList();
+      if (currentSpotlightCase && currentSpotlightCase.id === caseId) {
+        clearStageSpotlight();
+      }
+    }
+
+    function showNextQueuedCase() {
+      if (submittedCases.length === 0) {
+        showToast('В очереди больше нет кейсов');
+        return;
+      }
+      if (!currentSpotlightCase) {
+        setSpotlightCase(submittedCases[0].id);
+        return;
+      }
+      const currentIndex = submittedCases.findIndex(c => c.id === currentSpotlightCase.id);
+      const nextIndex = (currentIndex + 1) % submittedCases.length;
+      setSpotlightCase(submittedCases[nextIndex].id);
     }
 
     function handleNotesClick() {
@@ -1395,81 +1979,11 @@
       showToast('Режим спикера заблокирован');
     }
 
-    // Инициализация при загрузке
-    window.addEventListener('DOMContentLoaded', () => {
-      showSlide(1);
-      buildOverviewList();
-      updateNotesView();
-      checkSpeakerAuth();
-    });
-
-    // Переключение слайдов
-    function showSlide(index) {
-      if (index < 1) index = 1;
-      if (index > totalSlides) index = totalSlides;
-
-      currentSlide = index;
-
-      document.querySelectorAll('.slide-view').forEach((el, idx) => {
-        if (idx + 1 === currentSlide) {
-          el.classList.add('active');
-        } else {
-          el.classList.remove('active');
-        }
-      });
-
-      // Обновление индикатора
-      const padCurrent = currentSlide < 10 ? `0${currentSlide}` : currentSlide;
-      const padTotal = totalSlides < 10 ? `0${totalSlides}` : totalSlides;
-      document.getElementById('slideIndicator').textContent = `${padCurrent} / ${padTotal}`;
-
-      // Обновление прогресс-бара
-      const progressPercent = (currentSlide / totalSlides) * 100;
-      document.getElementById('progressBar').style.width = `${progressPercent}%`;
-
-      updateNotesView();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+    function toggleNotesDrawer() {
+      const drawer = document.getElementById('notesDrawer');
+      drawer.classList.toggle('translate-x-full');
     }
 
-    function nextSlide() {
-      if (currentSlide < totalSlides) {
-        showSlide(currentSlide + 1);
-      }
-    }
-
-    function prevSlide() {
-      if (currentSlide > 1) {
-        showSlide(currentSlide - 1);
-      }
-    }
-
-    // Клавиатурная навигация
-    window.addEventListener('keydown', (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-
-      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
-        e.preventDefault();
-        nextSlide();
-      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
-        e.preventDefault();
-        prevSlide();
-      } else if (e.key === 'f' || e.key === 'F') {
-        toggleFullscreen();
-      }
-    });
-
-    // Полноэкранный режим
-    function toggleFullscreen() {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(() => {});
-      } else {
-        if (document.exitFullscreen) {
-          document.exitFullscreen();
-        }
-      }
-    }
-
-    // Обновление заметок спикера
     function updateNotesView() {
       const note = speakerNotes[currentSlide - 1];
       if (note) {
@@ -1479,14 +1993,9 @@
       }
     }
 
-    function toggleNotesDrawer() {
-      const drawer = document.getElementById('notesDrawer');
-      drawer.classList.toggle('translate-x-full');
-    }
-
-    // Оглавление
     function buildOverviewList() {
       const list = document.getElementById('overviewList');
+      if (!list) return;
       list.innerHTML = '';
       speakerNotes.forEach((item, index) => {
         const btn = document.createElement('button');
@@ -1499,7 +2008,7 @@
           <span class="text-brand-muted text-[10px] uppercase">Перейти →</span>
         `;
         btn.onclick = () => {
-          showSlide(index + 1);
+          showSlide(index + 1, isSpeakerAuthorized);
           toggleOverviewModal();
         };
         list.appendChild(btn);
@@ -1512,7 +2021,6 @@
       modal.classList.toggle('flex');
     }
 
-    // QR модалка
     function openQrModal() {
       const modal = document.getElementById('qrModal');
       modal.classList.remove('hidden');
@@ -1525,314 +2033,14 @@
       modal.classList.remove('flex');
     }
 
-    // 2. ДВИЖОК ТАЙМЕРА ДЛЯ ПРАКТИКУМА
-    let timerTotalSeconds = 5 * 60;
-    let timerRemaining = timerTotalSeconds;
-    let timerInterval = null;
-    let isTimerRunning = false;
-
-    // Звуковой гонг на Web Audio API (без внешних файлов)
-    function playChime(freq1 = 587.33, freq2 = 880.00) {
-      try {
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        const now = audioCtx.currentTime;
-
-        const osc1 = audioCtx.createOscillator();
-        const osc2 = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-
-        osc1.type = 'sine';
-        osc1.frequency.setValueAtTime(freq1, now);
-        osc2.type = 'triangle';
-        osc2.frequency.setValueAtTime(freq2, now);
-
-        gain.gain.setValueAtTime(0, now);
-        gain.gain.linearRampToValueAtTime(0.3, now + 0.05);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 1.6);
-
-        osc1.connect(gain);
-        osc2.connect(gain);
-        gain.connect(audioCtx.destination);
-
-        osc1.start(now);
-        osc2.start(now);
-        osc1.stop(now + 1.6);
-        osc2.stop(now + 1.6);
-      } catch (e) {
-        console.debug('Audio chime prevented by autoplay policy', e);
-      }
-    }
-
-    function updateTimerUI() {
-      const mins = Math.floor(timerRemaining / 60);
-      const secs = timerRemaining % 60;
-      const str = `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
-      document.getElementById('timerDigits').textContent = str;
-
-      const container = document.getElementById('timerDisplayContainer');
-      if (isTimerRunning) {
-        container.classList.add('timer-running');
+    function toggleFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(() => {});
       } else {
-        container.classList.remove('timer-running');
+        if (document.exitFullscreen) document.exitFullscreen();
       }
     }
 
-    function toggleTimer() {
-      if (isTimerRunning) {
-        // Пауза
-        clearInterval(timerInterval);
-        isTimerRunning = false;
-        document.getElementById('timerToggleIcon').textContent = '▶';
-        document.getElementById('timerToggleText').textContent = 'Продолжить';
-        document.getElementById('timerStatusLabel').textContent = 'На паузе';
-        updateTimerUI();
-      } else {
-        // Старт
-        playChime(659.25, 987.77);
-        isTimerRunning = true;
-        document.getElementById('timerToggleIcon').textContent = '⏸';
-        document.getElementById('timerToggleText').textContent = 'Пауза';
-        document.getElementById('timerStatusLabel').textContent = 'Идет работа';
-
-        timerInterval = setInterval(() => {
-          if (timerRemaining > 0) {
-            timerRemaining--;
-            updateTimerUI();
-
-            // Звуковое оповещение за 1 минуту
-            if (timerRemaining === 60) {
-              playChime(523.25, 783.99);
-              showToast('Осталась 1 минута практикума!');
-            }
-          } else {
-            clearInterval(timerInterval);
-            isTimerRunning = false;
-            document.getElementById('timerToggleIcon').textContent = '▶';
-            document.getElementById('timerToggleText').textContent = 'Старт';
-            document.getElementById('timerStatusLabel').textContent = 'Время вышло!';
-            updateTimerUI();
-            playChime(440.00, 659.25);
-            showToast('Время практикума завершено!');
-          }
-        }, 1000);
-        updateTimerUI();
-      }
-    }
-
-    function resetTimer() {
-      clearInterval(timerInterval);
-      isTimerRunning = false;
-      timerRemaining = 5 * 60;
-      document.getElementById('timerToggleIcon').textContent = '▶';
-      document.getElementById('timerToggleText').textContent = 'Старт';
-      document.getElementById('timerStatusLabel').textContent = 'Ожидание старта';
-      updateTimerUI();
-    }
-
-    function addMinute() {
-      timerRemaining += 60;
-      updateTimerUI();
-      showToast('Добавлена 1 минута');
-    }
-
-    // 3. СИСТЕМА ЖИВОГО ОБМЕНА КЕЙСАМИ (СИНХРОНИЗАЦИЯ НА ЭКРАН)
-    // Поддержка Cloud Firestore + надежный fallback через BroadcastChannel для локальной работы
-    let submittedCases = [];
-    let currentSpotlightCase = null;
-    const stageBroadcast = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('rtk_pnl_stage_sync') : null;
-
-    if (stageBroadcast) {
-      stageBroadcast.onmessage = (event) => {
-        const { type, payload } = event.data;
-        if (type === 'NEW_CASE') {
-          handleIncomingCase(payload);
-        } else if (type === 'SPOTLIGHT_CHANGE') {
-          renderSpotlight(payload);
-        } else if (type === 'CLEAR_SPOTLIGHT') {
-          clearStageSpotlightUI();
-        } else if (type === 'CLEAR_ALL') {
-          submittedCases = [];
-          updateQueueBadge();
-          renderQueueList();
-        }
-      };
-    }
-
-    function submitCaseToStage() {
-      const author = document.getElementById('wbAuthorName').value.trim() || 'Участник из зала';
-      const proj = document.getElementById('wbProjectName').value.trim();
-      const kpi = document.getElementById('wbGovKpi').value.trim();
-      const econ = document.getElementById('wbEconomics').value.trim();
-      const prot = document.getElementById('wbProtocolText').value.trim();
-
-      if (!proj && !kpi && !prot) {
-        showToast('Заполните хотя бы проект или формулировку поручения');
-        return;
-      }
-
-      const newCase = {
-        id: 'case_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
-        author: author,
-        project: proj || 'Проект цифровизации',
-        kpi: kpi || 'Показатель Указа № 1014 / РЦТ',
-        economics: econ || 'Согласовано в рамках нормативов P&L',
-        protocol: prot || 'Проект поручения в итоговый протокол встречи',
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-      };
-
-      // Локальное добавление и широковещательная отправка
-      handleIncomingCase(newCase);
-      if (stageBroadcast) {
-        stageBroadcast.postMessage({ type: 'NEW_CASE', payload: newCase });
-      }
-
-      showToast('Кейс отправлен на экран спикера!');
-    }
-
-    function handleIncomingCase(c) {
-      if (!submittedCases.some(item => item.id === c.id)) {
-        submittedCases.unshift(c);
-        updateQueueBadge();
-        renderQueueList();
-      }
-    }
-
-    function updateQueueBadge() {
-      const badge = document.getElementById('queueCount');
-      if (badge) badge.textContent = submittedCases.length;
-    }
-
-    function toggleQueueModal() {
-      const modal = document.getElementById('queueModal');
-      modal.classList.toggle('hidden');
-      modal.classList.toggle('flex');
-      renderQueueList();
-    }
-
-    function renderQueueList() {
-      const container = document.getElementById('queueListContainer');
-      if (!container) return;
-
-      if (submittedCases.length === 0) {
-        container.innerHTML = `
-          <div class="text-center py-8 text-brand-muted text-xs">
-            Очередь пока пуста. Когда участники нажмут кнопку «Отправить на экран», их проекты появятся здесь.
-          </div>
-        `;
-        return;
-      }
-
-      container.innerHTML = '';
-      submittedCases.forEach((item, idx) => {
-        const div = document.createElement('div');
-        div.className = 'p-4 rounded-xl border border-brand-border bg-slate-50 hover:bg-white hover:border-brand-purple transition flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3';
-        div.innerHTML = `
-          <div class="flex-1">
-            <div class="flex items-center gap-2 mb-1">
-              <span class="text-xs font-bold text-brand-purple">${item.author}</span>
-              <span class="text-[10px] text-brand-muted">• ${item.time}</span>
-            </div>
-            <div class="text-sm font-bold text-brand-dark">${item.project}</div>
-            <div class="text-xs text-brand-sub mt-0.5 line-clamp-1">${item.protocol}</div>
-          </div>
-          <div class="flex items-center gap-2 shrink-0">
-            <button onclick="setSpotlightCase('${item.id}')" class="px-3 py-1.5 bg-brand-purple hover:bg-[#4d2dbf] text-white text-xs font-bold rounded-lg transition shadow-sm">
-              Вывести на экран
-            </button>
-            <button onclick="removeCase('${item.id}')" class="p-1.5 text-slate-400 hover:text-red-500 rounded-lg">
-              ✕
-            </button>
-          </div>
-        `;
-        container.appendChild(div);
-      });
-    }
-
-    function setSpotlightCase(caseId) {
-      const found = submittedCases.find(c => c.id === caseId);
-      if (!found) return;
-
-      currentSpotlightCase = found;
-      renderSpotlight(found);
-
-      if (stageBroadcast) {
-        stageBroadcast.postMessage({ type: 'SPOTLIGHT_CHANGE', payload: found });
-      }
-
-      // Закрываем модальное окно очереди и переходим к слайду 8
-      const modal = document.getElementById('queueModal');
-      if (modal && !modal.classList.contains('hidden')) {
-        toggleQueueModal();
-      }
-      showSlide(8);
-      showToast(`Кейс «${found.project}» выведен на экран`);
-    }
-
-    function renderSpotlight(data) {
-      if (!data) return;
-      currentSpotlightCase = data;
-
-      const display = document.getElementById('spotlightDisplay');
-      document.getElementById('spotlightProjectTitle').textContent = data.project;
-      document.getElementById('spotlightAuthorBadge').textContent = `Автор: ${data.author}`;
-      document.getElementById('spotlightGovKpi').textContent = data.kpi;
-      document.getElementById('spotlightEconomics').textContent = data.economics;
-      document.getElementById('spotlightProtocol').textContent = `«${data.protocol}»`;
-
-      if (display) display.classList.remove('hidden');
-    }
-
-    function clearStageSpotlight() {
-      clearStageSpotlightUI();
-      if (stageBroadcast) {
-        stageBroadcast.postMessage({ type: 'CLEAR_SPOTLIGHT' });
-      }
-      showToast('Экран очищен');
-    }
-
-    function clearStageSpotlightUI() {
-      currentSpotlightCase = null;
-      const display = document.getElementById('spotlightDisplay');
-      if (display) display.classList.add('hidden');
-    }
-
-    function showNextQueuedCase() {
-      if (submittedCases.length === 0) {
-        showToast('В очереди больше нет кейсов');
-        return;
-      }
-
-      if (!currentSpotlightCase) {
-        setSpotlightCase(submittedCases[0].id);
-        return;
-      }
-
-      const currentIndex = submittedCases.findIndex(c => c.id === currentSpotlightCase.id);
-      const nextIndex = (currentIndex + 1) % submittedCases.length;
-      setSpotlightCase(submittedCases[nextIndex].id);
-    }
-
-    function removeCase(caseId) {
-      submittedCases = submittedCases.filter(c => c.id !== caseId);
-      updateQueueBadge();
-      renderQueueList();
-      if (currentSpotlightCase && currentSpotlightCase.id === caseId) {
-        clearStageSpotlight();
-      }
-    }
-
-    function clearAllCases() {
-      submittedCases = [];
-      updateQueueBadge();
-      renderQueueList();
-      clearStageSpotlight();
-      if (stageBroadcast) {
-        stageBroadcast.postMessage({ type: 'CLEAR_ALL' });
-      }
-      showToast('Очередь полностью очищена');
-    }
-
-    // Копирование One-Pager из полей формы
     function copyWorkbookBrief() {
       const author = document.getElementById('wbAuthorName').value.trim() || 'Участник';
       const proj = document.getElementById('wbProjectName').value.trim() || 'Проект цифровизации';
@@ -1842,7 +2050,6 @@
 
       const fullText = `[ СТАНДАРТ ONE-PAGER ДЛЯ ДИРЕКТОРА ФИЛИАЛА ]\nАвтор: ${author}\n\n1. НАИМЕНОВАНИЕ ПРОЕКТА:\n${proj}\n\n2. ЦЕЛЬ ДЛЯ ГУБЕРНАТОРА (УКАЗ 1014 / РЦТ):\n${kpi}\n\n3. ЭКОНОМИКА ФИЛИАЛА:\n${econ}\n\n4. ПОРУЧЕНИЕ В ПРОТОКОЛ ВСТРЕЧИ:\n${prot}`;
 
-      // Копирование в буфер обмена через совместимый fallback
       const tempArea = document.createElement('textarea');
       tempArea.value = fullText;
       tempArea.style.position = 'fixed';
@@ -1859,20 +2066,66 @@
       document.body.removeChild(tempArea);
     }
 
-    // Всплывающие уведомления (Toast)
     function showToast(msg) {
       const toast = document.getElementById('toastNotification');
       const toastMessage = document.getElementById('toastMessage');
+      if (!toast || !toastMessage) return;
       toastMessage.textContent = msg;
-
       toast.classList.remove('translate-y-16', 'opacity-0');
       toast.classList.add('translate-y-0', 'opacity-100');
-
       setTimeout(() => {
         toast.classList.remove('translate-y-0', 'opacity-100');
         toast.classList.add('translate-y-16', 'opacity-0');
       }, 3000);
     }
+
+    // Экспорт в глобальное окно для HTML inline-обработчиков
+    window.showSlide = showSlide;
+    window.nextSlide = nextSlide;
+    window.prevSlide = prevSlide;
+    window.toggleTimer = toggleTimer;
+    window.resetTimer = resetTimer;
+    window.addMinute = addMinute;
+    window.toggleQueueModal = toggleQueueModal;
+    window.setSpotlightCase = setSpotlightCase;
+    window.removeCase = removeCase;
+    window.clearAllCases = clearAllCases;
+    window.showNextQueuedCase = showNextQueuedCase;
+    window.clearStageSpotlight = clearStageSpotlight;
+    window.submitCaseToStage = submitCaseToStage;
+    window.copyWorkbookBrief = copyWorkbookBrief;
+    window.handleNotesClick = handleNotesClick;
+    window.handlePinSubmit = handlePinSubmit;
+    window.closePinModal = closePinModal;
+    window.exitSpeakerMode = exitSpeakerMode;
+    window.toggleNotesDrawer = toggleNotesDrawer;
+    window.toggleOverviewModal = toggleOverviewModal;
+    window.openQrModal = openQrModal;
+    window.closeQrModal = closeQrModal;
+    window.toggleFullscreen = toggleFullscreen;
+
+    // Клавиатурное управление для спикера
+    window.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+      if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault();
+        nextSlide();
+      } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+        e.preventDefault();
+        prevSlide();
+      } else if (e.key === 'f' || e.key === 'F') {
+        toggleFullscreen();
+      }
+    });
+
+    // Инициализация при старте
+    window.addEventListener('DOMContentLoaded', () => {
+      showSlide(1, false);
+      buildOverviewList();
+      updateNotesView();
+      checkSpeakerAuth();
+      initRealtimeEngine();
+    });
   </script>
 </body>
 </html>
